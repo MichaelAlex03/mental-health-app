@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haven — Home (Authenticated) Mockup</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Design tokens ── */
+    :root {
+      --background: hsl(40 30% 97%);
+      --foreground: hsl(30 10% 15%);
+      --card: hsl(40 25% 99%);
+      --card-foreground: hsl(30 10% 15%);
+      --primary: hsl(155 25% 38%);
+      --primary-foreground: hsl(0 0% 100%);
+      --secondary: hsl(35 20% 93%);
+      --secondary-foreground: hsl(30 10% 20%);
+      --muted: hsl(35 15% 93%);
+      --muted-foreground: hsl(30 8% 45%);
+      --accent: hsl(18 45% 62%);
+      --accent-foreground: hsl(0 0% 100%);
+      --border: hsl(35 15% 82%);
+      --radius: 0.75rem;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Top nav bar ── */
+    .topnav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px; padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: hsla(40,25%,99%,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .topnav-brand { font-size: 1.125rem; font-weight: 600; color: var(--primary); }
+    .topnav-right { display: flex; align-items: center; gap: 16px; }
+    .topnav-link {
+      font-size: 0.8rem; color: var(--muted-foreground); cursor: pointer;
+    }
+    .topnav-link:hover { color: var(--foreground); }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary); color: var(--primary-foreground);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    }
+
+    /* ── Layout: sidebar + main ── */
+    .layout {
+      display: flex; width: 100%; padding: 24px 24px; gap: 24px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 8px;
+      position: sticky; top: 80px; align-self: flex-start;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--radius);
+      font-size: 0.875rem; color: var(--foreground); cursor: pointer;
+      transition: background 0.12s;
+    }
+    .sidebar-item:hover { background: var(--secondary); }
+    .sidebar-item.active { background: var(--primary); color: var(--primary-foreground); }
+    .sidebar-item .icon { width: 18px; text-align: center; font-size: 1rem; }
+    .sidebar-section {
+      margin-top: 16px; padding: 0 14px 4px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--muted-foreground);
+    }
+    .sidebar-tag {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: var(--radius);
+      font-size: 0.8rem; color: var(--muted-foreground); cursor: pointer;
+    }
+    .sidebar-tag:hover { background: var(--secondary); color: var(--foreground); }
+    .sidebar-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+
+    /* ── Main feed column ── */
+    .feed { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Compose box ── */
+    .compose {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .compose-input {
+      flex: 1; padding: 10px 14px;
+      background: var(--muted); border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: var(--font); font-size: 0.875rem; color: var(--foreground);
+      outline: none;
+    }
+    .compose-input::placeholder { color: var(--muted-foreground); }
+    .compose-input:focus { border-color: var(--primary); }
+
+    /* ── Feed filters ── */
+    .feed-filters {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .filter-chip {
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 500; cursor: pointer;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground);
+      transition: background 0.12s, color 0.12s;
+    }
+    .filter-chip:hover { background: var(--secondary); color: var(--foreground); }
+    .filter-chip.active {
+      background: var(--primary); color: var(--primary-foreground); border-color: var(--primary);
+    }
+
+    /* ── Post card ── */
+    .post {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; flex-direction: column; gap: 10px;
+      transition: border-color 0.12s;
+    }
+    .post:hover { border-color: var(--primary); cursor: pointer; }
+    .post-header {
+      display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--muted-foreground);
+    }
+    .post-avatar {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 600; color: var(--muted-foreground);
+    }
+    .post-tag {
+      padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 500;
+      color: var(--primary-foreground);
+    }
+    .post h3 {
+      font-size: 1rem; font-weight: 600; color: var(--card-foreground); line-height: 1.4;
+    }
+    .post p {
+      font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.55;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .post-actions {
+      display: flex; gap: 16px; margin-top: 4px;
+    }
+    .post-action {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.75rem; color: var(--muted-foreground); cursor: pointer;
+      padding: 4px 8px; border-radius: var(--radius);
+      transition: background 0.12s;
+    }
+    .post-action:hover { background: var(--muted); color: var(--foreground); }
+    .post-action .icon { font-size: 0.9rem; }
+
+    /* ── Right sidebar ── */
+    .right-sidebar {
+      width: 260px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 16px;
+      position: sticky; top: 80px; align-self: flex-start;
+    }
+    .widget {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px;
+    }
+    .widget h4 {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--muted-foreground); margin-bottom: 12px;
+    }
+    .widget-item {
+      padding: 8px 0; font-size: 0.8rem; color: var(--foreground);
+      border-bottom: 1px solid var(--border);
+    }
+    .widget-item:last-child { border-bottom: none; }
+    .widget-item small { display: block; font-size: 0.7rem; color: var(--muted-foreground); margin-top: 2px; }
+    .widget-link {
+      display: block; padding: 6px 0; font-size: 0.8rem;
+      color: var(--primary); font-weight: 500;
+    }
+    .widget-link:hover { text-decoration: underline; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font); font-size: 0.8rem; font-weight: 500;
+      border-radius: var(--radius); cursor: pointer;
+      padding: 8px 16px; border: 1px solid transparent;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); width: 100%; }
+    .btn-outline { background: transparent; color: var(--foreground); border-color: var(--border); }
+
+    /* ── Crisis banner ── */
+    .crisis-banner {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 18px; font-size: 0.75rem; color: var(--muted-foreground);
+      line-height: 1.5;
+    }
+    .crisis-banner a { text-decoration: underline; text-underline-offset: 3px; color: var(--accent); font-weight: 500; }
+    .crisis-banner a:hover { color: var(--foreground); }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .right-sidebar { display: none; }
+    }
+    @media (max-width: 720px) {
+      .sidebar { display: none; }
+      .layout { padding: 16px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top nav -->
+  <header class="topnav">
+    <span class="topnav-brand">Haven</span>
+    <div class="topnav-right">
+      <span class="topnav-link">Notifications</span>
+      <span class="topnav-link">Settings</span>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-item active">
+        <span class="icon">&#9751;</span> Home
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#9734;</span> Saved
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#9998;</span> My Posts
+      </div>
+
+      <div class="sidebar-section">Spaces</div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: var(--primary);"></span> Anxiety
+      </div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: var(--accent);"></span> Depression
+      </div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: hsl(35 20% 50%);"></span> Self-care
+      </div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: hsl(200 30% 50%);"></span> Relationships
+      </div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: hsl(280 25% 55%);"></span> Grief
+      </div>
+      <div class="sidebar-tag">
+        <span class="sidebar-dot" style="background: hsl(340 25% 55%);"></span> Recovery
+      </div>
+
+      <div class="sidebar-section">Resources</div>
+      <div class="sidebar-item">
+        <span class="icon">&#9829;</span> Crisis Help
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#9883;</span> Coping Tools
+      </div>
+    </aside>
+
+    <!-- Main feed -->
+    <main class="feed">
+
+      <!-- Compose -->
+      <div class="compose">
+        <div class="avatar" style="width:36px;height:36px;font-size:0.8rem;">A</div>
+        <input class="compose-input" placeholder="What's on your mind? Share with the community..." />
+        <button class="btn btn-primary" style="width:auto; white-space:nowrap;">+ Create Post</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="feed-filters">
+        <span class="filter-chip active">Latest</span>
+        <span class="filter-chip">Most Supported</span>
+        <span class="filter-chip">Unanswered</span>
+      </div>
+
+      <!-- Post 1 -->
+      <article class="post">
+        <div class="post-header">
+          <div class="post-avatar">M</div>
+          <span>Anonymous &middot; 2h ago</span>
+          <span class="post-tag" style="background: var(--primary);">Anxiety</span>
+        </div>
+        <h3>Does anyone else feel anxious for no reason at all?</h3>
+        <p>
+          Some days I wake up and everything feels fine on the surface, but there's this
+          constant undercurrent of dread that I can't shake. I've tried journaling and
+          breathing exercises but the feeling just sits there. Would love to hear how
+          others manage this...
+        </p>
+        <div class="post-actions">
+          <span class="post-action"><span class="icon">&#9829;</span> 24 support</span>
+          <span class="post-action"><span class="icon">&#9993;</span> 12 replies</span>
+          <span class="post-action"><span class="icon">&#9734;</span> Save</span>
+        </div>
+      </article>
+
+      <!-- Post 2 -->
+      <article class="post">
+        <div class="post-header">
+          <div class="post-avatar">K</div>
+          <span>Anonymous &middot; 4h ago</span>
+          <span class="post-tag" style="background: hsl(35 20% 50%);">Self-care</span>
+        </div>
+        <h3>Small wins thread &mdash; share something good from today</h3>
+        <p>
+          I'll start: I actually got out of bed before noon and made myself a proper
+          breakfast. It sounds small but it's the first time in weeks. What's your
+          small win today?
+        </p>
+        <div class="post-actions">
+          <span class="post-action"><span class="icon">&#9829;</span> 58 support</span>
+          <span class="post-action"><span class="icon">&#9993;</span> 34 replies</span>
+          <span class="post-action"><span class="icon">&#9734;</span> Save</span>
+        </div>
+      </article>
+
+      <!-- Post 3 -->
+      <article class="post">
+        <div class="post-header">
+          <div class="post-avatar">R</div>
+          <span>Anonymous &middot; 6h ago</span>
+          <span class="post-tag" style="background: var(--accent);">Depression</span>
+        </div>
+        <h3>Feeling stuck and don't know where to start</h3>
+        <p>
+          I know I need to make changes but the thought of doing anything feels
+          overwhelming. Therapy waitlists are months long where I am. Has anyone found
+          things that help while waiting to get professional support?
+        </p>
+        <div class="post-actions">
+          <span class="post-action"><span class="icon">&#9829;</span> 41 support</span>
+          <span class="post-action"><span class="icon">&#9993;</span> 27 replies</span>
+          <span class="post-action"><span class="icon">&#9734;</span> Save</span>
+        </div>
+      </article>
+
+      <!-- Post 4 -->
+      <article class="post">
+        <div class="post-header">
+          <div class="post-avatar">J</div>
+          <span>Anonymous &middot; 9h ago</span>
+          <span class="post-tag" style="background: hsl(200 30% 50%);">Relationships</span>
+        </div>
+        <h3>How do you explain mental health struggles to family?</h3>
+        <p>
+          My parents keep telling me to "just think positive" and it feels really
+          invalidating. I love them but I don't know how to help them understand
+          that it's not that simple. Any advice on having that conversation?
+        </p>
+        <div class="post-actions">
+          <span class="post-action"><span class="icon">&#9829;</span> 36 support</span>
+          <span class="post-action"><span class="icon">&#9993;</span> 19 replies</span>
+          <span class="post-action"><span class="icon">&#9734;</span> Save</span>
+        </div>
+      </article>
+
+      <!-- Post 5 -->
+      <article class="post">
+        <div class="post-header">
+          <div class="post-avatar">T</div>
+          <span>Anonymous &middot; 12h ago</span>
+          <span class="post-tag" style="background: hsl(340 25% 55%);">Recovery</span>
+        </div>
+        <h3>6 months clean today</h3>
+        <p>
+          I don't have anyone in my life I can tell this to, so I'm telling you all.
+          Six months ago I didn't think I'd make it. Thank you to everyone in this
+          community who responded to my posts at 3am. You matter more than you know.
+        </p>
+        <div class="post-actions">
+          <span class="post-action"><span class="icon">&#9829;</span> 142 support</span>
+          <span class="post-action"><span class="icon">&#9993;</span> 63 replies</span>
+          <span class="post-action"><span class="icon">&#9734;</span> Save</span>
+        </div>
+      </article>
+
+    </main>
+
+    <!-- Right sidebar -->
+    <aside class="right-sidebar">
+
+      <!-- Crisis banner -->
+      <div class="crisis-banner">
+        In crisis? You're not alone.<br />
+        <a href="https://988lifeline.org" target="_blank" rel="noopener noreferrer">988 Suicide &amp; Crisis Lifeline</a>
+        &mdash; call or text 988, 24/7.
+      </div>
+
+      <!-- Community stats -->
+      <div class="widget">
+        <h4>Community</h4>
+        <div class="widget-item">
+          <strong style="color: var(--primary);">1,247</strong> members
+        </div>
+        <div class="widget-item">
+          <strong style="color: var(--primary);">89</strong> online now
+        </div>
+        <div class="widget-item">
+          <strong style="color: var(--primary);">3,582</strong> posts shared
+        </div>
+      </div>
+
+      <!-- Trending topics -->
+      <div class="widget">
+        <h4>Trending Topics</h4>
+        <div class="widget-item">
+          Managing exam stress
+          <small>42 posts this week</small>
+        </div>
+        <div class="widget-item">
+          Grounding techniques
+          <small>38 posts this week</small>
+        </div>
+        <div class="widget-item">
+          Sleep hygiene tips
+          <small>29 posts this week</small>
+        </div>
+        <div class="widget-item">
+          Gratitude journaling
+          <small>21 posts this week</small>
+        </div>
+      </div>
+
+      <!-- Quick tools -->
+      <div class="widget">
+        <h4>Quick Tools</h4>
+        <a class="widget-link" href="#">Breathing exercise</a>
+        <a class="widget-link" href="#">5-4-3-2-1 grounding</a>
+        <a class="widget-link" href="#">Mood check-in</a>
+        <a class="widget-link" href="#">Find a therapist</a>
+      </div>
+
+    </aside>
+
+  </div>
+
+</body>
+</html>
