@@ -43,7 +43,5 @@ export async function ThreadFeed() {
     fetchCategories(),
   ]);
 
-  console.log("T", threads)
-  console.log("C", categories)
   return <FeedClient threads={threads} categories={categories} />;
 }

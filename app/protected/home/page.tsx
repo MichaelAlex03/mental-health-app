@@ -11,16 +11,6 @@ interface Space {
   color: string;
 }
 
-// ── Static data ────────────────────────────────────────────────────
-
-const SPACES: Space[] = [
-  { name: "Anxiety", color: "bg-primary" },
-  { name: "Depression", color: "bg-accent" },
-  { name: "Self-care", color: "bg-[hsl(35_20%_50%)]" },
-  { name: "Relationships", color: "bg-[hsl(200_30%_50%)]" },
-  { name: "Grief", color: "bg-[hsl(280_25%_55%)]" },
-  { name: "Recovery", color: "bg-[hsl(340_25%_55%)]" },
-];
 
 const QUICK_TOOLS = [
   { label: "Breathing exercise", href: "#" },
