@@ -21,13 +21,13 @@ const QUICK_TOOLS = [
 
 // ── Page ───────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default function HomePage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   return (
     <div className="flex gap-6 w-full">
       {/* ── Main feed ── */}
       <main className="flex-1 min-w-0 flex flex-col gap-4">
         <Suspense fallback={<Skeleton />}>
-          <ThreadFeed />
+          <ThreadFeed searchParams={searchParams} />
         </Suspense>
       </main>
 

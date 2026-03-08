@@ -1,29 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Heart,
+
   MessageCircle,
-  Star,
-  Plus,
 
 } from "lucide-react";
 import { ServerThreadTopic } from "@/app/schemas/post";
 import { Category } from "@/app/schemas/categories";
 import { CreateThreadDialog } from "./create-thread-dialog";
+import { useSearchParams, useRouter } from "next/navigation";
+import { getThreads } from "../actions";
 
 
-const SPACE_ITEMS = ["All", "Anxiety", "Depression", "Self-care", "Relationships", "Grief", "Recovery"] as const;
-type Spaces = (typeof SPACE_ITEMS)[number]
-
-
-export function FeedClient({ threads, categories }: { threads: ServerThreadTopic[], categories: Category[] }) {
-  const [activeFilter, setActiveFilter] = useState<Spaces>("All");
+export function FeedClient({ threads, categories, nextCursor }: { threads: ServerThreadTopic[], categories: Category[], nextCursor: number | null }) {
   const [composeValue, setComposeValue] = useState("");
+  const [categoryList, setCategoryList] = useState<Record<string, number | undefined>>({})
+  const [cursor, setCursor] = useState(nextCursor)
+  const [threadList, setThreadList] = useState<ServerThreadTopic[]>(threads)
+  const [hasMore, setHasMore] = useState<boolean>(nextCursor !== null)
+  const [loading, setLoading] = useState<boolean>(false);
+  const isFetchingRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const router = useRouter();
+  const searchParams = useSearchParams()
+  const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
+
+  const loadMore = useCallback(async () => {
+    if (isFetchingRef.current || !hasMore) return;
+
+    isFetchingRef.current = true;
+    setLoading(true)
+
+    try {
+      const { data, nextCursor } = await getThreads(cursor, currentCategory)
+      setThreadList((prev) => [...prev, ...data])
+      setCursor(nextCursor)
+      setHasMore(nextCursor !== null)
+    } finally {
+      isFetchingRef.current = false
+      setLoading(false)
+    }
+  }, [currentCategory, hasMore, cursor])
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { threshold: 0.1 }
+    )
+    observer.observe(sentinelRef.current)
+    return () => observer.disconnect();
+  }, [loadMore])
+
+  const handleCategoryFilter = (categoryId?: number) => {
+    router.push(`/protected/home${categoryId ? `?category=${categoryId}` : ''}`)
+  }
+
+  const createCategoriesMap = () => {
+    let map: Record<string, number | undefined> = { "All": undefined }
+    for (const category of categories) {
+      map[category.category_name] = category.id
+    }
+    setCategoryList(map)
+  }
+
+  useEffect(() => {
+    createCategoriesMap()
+  }, [])
 
 
   return (
@@ -42,23 +91,25 @@ export function FeedClient({ threads, categories }: { threads: ServerThreadTopic
             className="bg-muted"
           />
           <div>
-          <CreateThreadDialog categories={categories} />
+            <CreateThreadDialog categories={categories} />
           </div>
         </CardContent>
       </Card>
 
       {/* Feed filters */}
       <div className="flex gap-2">
-        {SPACE_ITEMS.map((filter) => (
+        {Object.entries(categoryList).map(([name, id]) => (
           <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${activeFilter === filter
+            key={name}
+            onClick={() => {
+              handleCategoryFilter(id)
+            }}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${id === currentCategory
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-card text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
               }`}
           >
-            {filter}
+            {name}
           </button>
         ))}
       </div>
@@ -83,12 +134,15 @@ export function FeedClient({ threads, categories }: { threads: ServerThreadTopic
       )}
 
       {/* Threads */}
-      {threads.map((thread) => (
+      {threadList.map((thread) => (
         <ThreadCard
           key={thread.id}
           thread={thread}
         />
       ))}
+
+      <div ref={sentinelRef} style={{ height: 1 }} />
+      {!hasMore && <p>You've reached the end</p>}
     </>
   );
 }

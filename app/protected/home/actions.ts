@@ -49,3 +49,37 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
 
 
 }
+
+export const getThreads = async (cursor: number | null, categoryId?: number) => {
+
+    const client = await createClient()
+    const limit = 10
+
+    let query = client
+        .from('topic_threads')
+        .select('*')
+        .order('id', { ascending: true })
+        .limit(limit + 1)
+
+    if (cursor) {
+        query = query.gt('id', cursor)
+    }
+
+    if (categoryId) {
+        query = query.eq('category_id', categoryId)
+    }
+
+    const { data, error } = await query;
+    if (error) {
+        throw error
+    }
+
+    const hasMore = data.length > limit
+    const trimmed = hasMore ? data.slice(0, -1) : data;
+
+    return {
+        data: trimmed,
+        nextCursor: hasMore ? trimmed[trimmed.length - 1].id : null
+    }
+
+}
