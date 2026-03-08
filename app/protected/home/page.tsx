@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { PostFeed } from "./components/post-feed";
+import { ThreadFeed } from "./components/thread-feed";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // ── Placeholder types ──────────────────────────────────────────────
@@ -37,7 +37,7 @@ export default function HomePage() {
       {/* ── Main feed ── */}
       <main className="flex-1 min-w-0 flex flex-col gap-4">
         <Suspense fallback={<Skeleton />}>
-          <PostFeed />
+          <ThreadFeed />
         </Suspense>
       </main>
 

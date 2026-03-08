@@ -6,31 +6,15 @@ import {
   Home,
   Bookmark,
   FileText,
-  HeartHandshake,
-  Wrench,
-  Dot,
 } from "lucide-react";
-import { Category } from "./home/components/post-feed";
+
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/protected/home" },
   { icon: Bookmark, label: "Saved", href: "/protected/saved" },
-  { icon: FileText, label: "My Posts", href: "/protected/my-posts" },
+  { icon: FileText, label: "My Threads", href: "/protected/my-threads" },
 ];
 
-const SPACE_ITEMS = [
-  { icon: Dot, label: "Anxiety", href: "/protected/home?space=anxiety" },
-  { icon: Dot, label: "Depression", href: "/protected/home?space=depression" },
-  { icon: Dot, label: "Self-care", href: "/protected/home?space=self-care" },
-  { icon: Dot, label: "Relationships", href: "/protected/home?space=relationships" },
-  { icon: Dot, label: "Grief", href: "/protected/home?space=grief" },
-  { icon: Dot, label: "Recovery", href: "/protected/home?space=recovery" },
-];
-
-const RESOURCE_ITEMS = [
-  { icon: HeartHandshake, label: "Crisis Help", href: "/protected/crisis" },
-  { icon: Wrench, label: "Coping Tools", href: "/protected/tools" },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -46,31 +30,7 @@ export function Sidebar() {
           active={pathname === item.href}
         />
       ))}
-      <p className="mt-4 px-3.5 pb-1 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">
-        Spaces
-      </p>
-      {SPACE_ITEMS.map((item) => (
-        <SidebarItem
-          key={item.href}
-          icon={<item.icon size={18} />}
-          label={item.label}
-          href={item.href}
-          active={pathname === item.href}
-        />
-      ))}
 
-      <p className="mt-4 px-3.5 pb-1 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground">
-        Resources
-      </p>
-      {RESOURCE_ITEMS.map((item) => (
-        <SidebarItem
-          key={item.href}
-          icon={<item.icon size={18} />}
-          label={item.label}
-          href={item.href}
-          active={pathname === item.href}
-        />
-      ))}
     </aside>
   );
 }

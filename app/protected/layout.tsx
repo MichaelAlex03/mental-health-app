@@ -18,23 +18,6 @@ export default async function ProtectedLayout({
   children: React.ReactNode;
 }) {
 
-  const fetchCategories = async () => {
-    const client = await createClient()
-
-    const { data, error } = await client
-      .from('categories')
-      .select('*')
-    
-    if (error){
-      throw error
-    }
-
-    return data 
-  }
-
-  const categories = await fetchCategories()
-
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* ── Top nav ── */}

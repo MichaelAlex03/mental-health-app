@@ -1,4 +1,4 @@
-import { ServerThreadTopic, serverTopicThreadSchema } from "@/app/schemas/post";
+import { ServerThreadTopic } from "@/app/schemas/post";
 import { FeedClient } from "./feed-client";
 import { createClient } from "@/lib/supabase/server";
 import { Category } from "@/app/schemas/categories";
@@ -6,7 +6,7 @@ import { Category } from "@/app/schemas/categories";
 
 
 
-async function fetchPosts(): Promise<ServerThreadTopic[]> {
+async function fetchThreads(): Promise<ServerThreadTopic[]> {
 
   const client = await createClient()
 
@@ -37,10 +37,13 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 
-export async function PostFeed() {
-  const [posts, categories] = await Promise.all([
-    fetchPosts(),
+export async function ThreadFeed() {
+  const [threads, categories] = await Promise.all([
+    fetchThreads(),
     fetchCategories(),
   ]);
-  return <FeedClient posts={posts} categories={categories} />;
+
+  console.log("T", threads)
+  console.log("C", categories)
+  return <FeedClient threads={threads} categories={categories} />;
 }

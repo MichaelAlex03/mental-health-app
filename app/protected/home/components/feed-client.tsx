@@ -10,22 +10,21 @@ import {
   MessageCircle,
   Star,
   Plus,
+
 } from "lucide-react";
-import type { Category, Post } from "./post-feed";
+import { ServerThreadTopic } from "@/app/schemas/post";
+import { Category } from "@/app/schemas/categories";
+import { CreateThreadDialog } from "./create-thread-dialog";
 
-const FILTERS = ["Latest", "Most Supported", "Unanswered"] as const;
-type Filter = (typeof FILTERS)[number];
 
-export function FeedClient({ posts, categories }: { posts: Post[], categories: Category[] }) {
-  const [activeFilter, setActiveFilter] = useState<Filter>("Latest");
+const SPACE_ITEMS = ["All", "Anxiety", "Depression", "Self-care", "Relationships", "Grief", "Recovery"] as const;
+type Spaces = (typeof SPACE_ITEMS)[number]
+
+
+export function FeedClient({ threads, categories }: { threads: ServerThreadTopic[], categories: Category[] }) {
+  const [activeFilter, setActiveFilter] = useState<Spaces>("All");
   const [composeValue, setComposeValue] = useState("");
 
-  // TODO: implement create-post handler
-  const handleCreatePost = () => {};
-
-  // TODO: implement support/save actions
-  const handleSupport = (_postId: string) => {};
-  const handleSave = (_postId: string) => {};
 
   return (
     <>
@@ -42,51 +41,63 @@ export function FeedClient({ posts, categories }: { posts: Post[], categories: C
             onChange={(e) => setComposeValue(e.target.value)}
             className="bg-muted"
           />
-          <Button size="sm" className="shrink-0" onClick={handleCreatePost}>
-            <Plus size={16} />
-            Create Post
-          </Button>
+          <div>
+          <CreateThreadDialog categories={categories} />
+          </div>
         </CardContent>
       </Card>
 
       {/* Feed filters */}
       <div className="flex gap-2">
-        {FILTERS.map((filter) => (
+        {SPACE_ITEMS.map((filter) => (
           <button
             key={filter}
             onClick={() => setActiveFilter(filter)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-              activeFilter === filter
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
-            }`}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${activeFilter === filter
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-muted-foreground border-border hover:bg-secondary hover:text-foreground"
+              }`}
           >
             {filter}
           </button>
         ))}
       </div>
 
-      {/* Posts */}
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          onSupport={() => handleSupport(post.id)}
-          onSave={() => handleSave(post.id)}
+      {threads.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <MessageCircle size={24} className="text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              No threads yet
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs mb-5">
+              This space is waiting for its first voice. Start a conversation and connect with others.
+            </p>
+            <div>
+              <CreateThreadDialog categories={categories} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Threads */}
+      {threads.map((thread) => (
+        <ThreadCard
+          key={thread.id}
+          thread={thread}
         />
       ))}
     </>
   );
 }
 
-function PostCard({
-  post,
-  onSupport,
-  onSave,
+function ThreadCard({
+  thread,
 }: {
-  post: Post;
-  onSupport: () => void;
-  onSave: () => void;
+  thread: ServerThreadTopic;
+
 }) {
   return (
     <Card className="hover:border-primary transition-colors cursor-pointer">
@@ -94,48 +105,20 @@ function PostCard({
         {/* Header */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[0.65rem] font-semibold text-muted-foreground">
-            {post.authorInitial}
+            A
           </div>
-          <span>Anonymous &middot; {post.timeAgo}</span>
-          <Badge
-            className={`${post.tagColor} text-primary-foreground border-0 rounded-full text-[0.65rem] px-2 py-0`}
-          >
-            {post.tag}
-          </Badge>
+          <span>Anonymous</span>
         </div>
 
         {/* Title + body */}
         <h3 className="text-base font-semibold text-card-foreground leading-snug">
-          {post.title}
+          {thread.title}
         </h3>
         <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-          {post.body}
+          {thread.content}
         </p>
 
-        {/* Actions */}
-        <div className="flex gap-4 mt-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSupport();
-            }}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:bg-muted px-2 py-1 rounded-lg transition-colors"
-          >
-            <Heart size={14} /> {post.supportCount} support
-          </button>
-          <button className="flex items-center gap-1 text-xs text-muted-foreground hover:bg-muted px-2 py-1 rounded-lg transition-colors">
-            <MessageCircle size={14} /> {post.replyCount} replies
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave();
-            }}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:bg-muted px-2 py-1 rounded-lg transition-colors"
-          >
-            <Star size={14} /> Save
-          </button>
-        </div>
+
       </CardContent>
     </Card>
   );
