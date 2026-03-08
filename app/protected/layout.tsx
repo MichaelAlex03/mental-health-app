@@ -1,42 +1,87 @@
-import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Bell, Settings, LogOut } from "lucide-react";
+import { Sidebar } from "./sidebar";
+import { createClient } from "@/lib/supabase/server";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            
-            
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          {children}
-        </div>
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
-          </p>
+  const fetchCategories = async () => {
+    const client = await createClient()
+
+    const { data, error } = await client
+      .from('categories')
+      .select('*')
+    
+    if (error){
+      throw error
+    }
+
+    return data 
+  }
+
+  const categories = await fetchCategories()
+
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* ── Top nav ── */}
+      <header className="sticky top-0 z-50 flex items-center justify-between h-14 px-6 border-b border-border bg-card/85 backdrop-blur-md">
+        <Link href="/protected" className="text-lg font-semibold text-primary">
+          Haven
+        </Link>
+        <div className="flex items-center gap-4">
           <ThemeSwitcher />
-        </footer>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <Avatar>
+                  {/* TODO: wire up real avatar URL from Supabase Storage */}
+                  <AvatarImage src="" alt="User avatar" />
+                  <AvatarFallback>A</AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link href="/protected/notifications">
+                  <Bell />
+                  Notifications
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/protected/settings">
+                  <Settings />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive">
+                <LogOut />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+
+      {/* Page content */}
+      <div className="flex flex-1 px-6 py-6 gap-6">
+        <Sidebar/>
+        <div className="flex-1 min-w-0">{children}</div>
       </div>
-    </main>
+    </div>
   );
 }
