@@ -24,7 +24,6 @@ import { useState } from "react";
 import { createTopicThreadSchema } from "@/app/schemas/post";
 import { createTopicThread } from "../actions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { useRouter } from "next/navigation";
 
 const MEMBER_MAX = 20;
 
@@ -39,8 +38,6 @@ export function CreateThreadDialog({
   const [content, setContent] = useState<string>("");
   const [category, setCategory] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const router = useRouter();
 
   const handleResetForm = () => {
     setTitle("")
@@ -79,7 +76,6 @@ export function CreateThreadDialog({
       handleResetForm();
       setErrors({})
       setOpen(false)
-      router.refresh()
 
     } catch (error) {
       if (isRedirectError(error)) {
@@ -90,13 +86,10 @@ export function CreateThreadDialog({
     }
   }
 
-  console.log(errors)
-  console.log(category)
-  console.log(typeof category)
 
   return (
-    <Dialog open={open} onOpenChange={() => {
-      setOpen
+    <Dialog open={open} onOpenChange={(value) => {
+      setOpen(value)
       handleResetForm()
     }}>
       <DialogTrigger asChild>

@@ -2,6 +2,7 @@
 
 import { CreateThreadTopicInput, createTopicThreadSchema } from "@/app/schemas/post";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 
@@ -43,6 +44,8 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
         }
     }
 
+    revalidatePath('/protected/home')
+    revalidatePath('/protected/my-threads')
     return {
         success: true,
     }
@@ -52,34 +55,31 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
 
 export const getThreads = async (cursor: number | null, categoryId?: number) => {
 
-    const client = await createClient()
-    const limit = 10
+    const client = createClient()
+    const limit = 10;
 
-    let query = client
-        .from('topic_threads')
-        .select('*')
-        .order('id', { ascending: true })
-        .limit(limit + 1)
+    let query = (await client).from('topic_threads').select('*').order('id', {ascending: true}).limit(limit + 1)
 
-    if (cursor) {
+    if (cursor){
         query = query.gt('id', cursor)
     }
 
-    if (categoryId) {
+    if(categoryId){
         query = query.eq('category_id', categoryId)
     }
 
-    const { data, error } = await query;
-    if (error) {
+    const { data, error  } = await query
+
+    if(error){
         throw error
     }
 
     const hasMore = data.length > limit
-    const trimmed = hasMore ? data.slice(0, -1) : data;
+    const nextCursor = hasMore ? data[data.length - 1].id : null
 
     return {
-        data: trimmed,
-        nextCursor: hasMore ? trimmed[trimmed.length - 1].id : null
+        data: hasMore ? data.slice(0, -1) : data,
+        nextCursor: nextCursor
     }
-
+        
 }

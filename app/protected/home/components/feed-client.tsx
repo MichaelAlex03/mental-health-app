@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
 
@@ -20,43 +18,46 @@ import { getThreads } from "../actions";
 export function FeedClient({ threads, categories, nextCursor }: { threads: ServerThreadTopic[], categories: Category[], nextCursor: number | null }) {
   const [composeValue, setComposeValue] = useState("");
   const [categoryList, setCategoryList] = useState<Record<string, number | undefined>>({})
-  const [cursor, setCursor] = useState(nextCursor)
   const [threadList, setThreadList] = useState<ServerThreadTopic[]>(threads)
-  const [hasMore, setHasMore] = useState<boolean>(nextCursor !== null)
-  const [loading, setLoading] = useState<boolean>(false);
-  const isFetchingRef = useRef(false);
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [cursor, setCursor] = useState(nextCursor)
+  const [hasMore, setHasMore] = useState(nextCursor !== null)
+  const isFetchingRef = useRef(false)
+  const sentinalRef = useRef<HTMLDivElement>(null)
+
 
   const router = useRouter();
   const searchParams = useSearchParams()
   const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
 
-  const loadMore = useCallback(async () => {
-    if (isFetchingRef.current || !hasMore) return;
 
-    isFetchingRef.current = true;
-    setLoading(true)
+  const loadMore = useCallback(async () => {
+
+    if (isFetchingRef.current || !hasMore) return;
+    isFetchingRef.current = true
 
     try {
       const { data, nextCursor } = await getThreads(cursor, currentCategory)
       setThreadList((prev) => [...prev, ...data])
       setCursor(nextCursor)
       setHasMore(nextCursor !== null)
+
     } finally {
       isFetchingRef.current = false
-      setLoading(false)
     }
-  }, [currentCategory, hasMore, cursor])
+
+  }, [currentCategory, cursor, hasMore])
+
 
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinalRef.current) return
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      (entries) => { if (entries[0].isIntersecting) loadMore() },
       { threshold: 0.1 }
     )
-    observer.observe(sentinelRef.current)
+    observer.observe(sentinalRef.current)
     return () => observer.disconnect();
   }, [loadMore])
+
 
   const handleCategoryFilter = (categoryId?: number) => {
     router.push(`/protected/home${categoryId ? `?category=${categoryId}` : ''}`)
@@ -141,8 +142,8 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
         />
       ))}
 
-      <div ref={sentinelRef} style={{ height: 1 }} />
-      {!hasMore && <p>You've reached the end</p>}
+
+      <div ref={sentinalRef} className="h-1" />
     </>
   );
 }
