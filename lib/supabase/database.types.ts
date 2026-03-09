@@ -257,7 +257,7 @@ export type Database = {
       }
       user_profile: {
         Row: {
-          avatar_s3_key: string | null
+          avatar_url: string | null
           bio: string | null
           birthday_date: string | null
           display_name: string
@@ -268,7 +268,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          avatar_s3_key?: string | null
+          avatar_url?: string | null
           bio?: string | null
           birthday_date?: string | null
           display_name: string
@@ -279,7 +279,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          avatar_s3_key?: string | null
+          avatar_url?: string | null
           bio?: string | null
           birthday_date?: string | null
           display_name?: string
@@ -325,7 +325,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_conversation: {
+        Args: { p_user_id: string; skip: number }
+        Returns: {
+          conversation_id: number
+          last_message_content: string
+          last_message_sender_id: string
+          last_message_sent_at: string
+          recipient_avatar_url: string
+          recipient_display_name: string
+          recipient_user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
