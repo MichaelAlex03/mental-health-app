@@ -7,7 +7,7 @@ export const getConversationsSchema = z.object({
     recipient_avatar_url: z.string(),
     last_message_content: z.string(),
     last_message_sent_at: z.string(),
-    last_Message_sender_id: z.uuidv4()
+    last_message_sender_id: z.uuidv4()
 })
 
-export type getConversations = z.infer<typeof getConversationsSchema>;
+export type GetConversationsType = z.infer<typeof getConversationsSchema>;

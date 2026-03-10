@@ -1,12 +1,13 @@
 import React from 'react'
-import { getConversations } from '../actions'
+
 import MessagesClient from './messages-client'
+import { getConversations } from '../actions'
 
 const MessageServerComponent = async () => {
-    const { data: conversations } = await getConversations(1)
+    const { validatedData: conversations, nextPage } = await getConversations(1)
 
     return (
-        <MessagesClient />
+        <MessagesClient conversations={conversations} nextPage={nextPage}/>
     )
 }
 
