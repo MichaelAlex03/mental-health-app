@@ -20,9 +20,7 @@ const MyThreadsPage = ({ searchParams }: Props) => {
         <div className="flex gap-6 w-full">
             {/* ── Main feed ── */}
             <main className="flex-1 min-w-0 flex flex-col gap-4">
-                <Suspense fallback={<Skeleton />}>
-                    <MyThreadFeed searchParams={searchParams} />
-                </Suspense>
+                <MyThreadFeed searchParams={searchParams} />
             </main>
 
             {/* ── Right sidebar ── */}

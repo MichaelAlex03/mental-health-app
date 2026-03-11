@@ -1,9 +1,12 @@
+"use client"
+
 import { GetConversationsType } from '@/app/schemas/messages'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getConversations } from '../actions'
 import { MessageCircle, Search, Send, Paperclip, Smile, Heart, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ConversationCard from './conversation-cards';
 
 
 interface MessagesClientProps {
@@ -16,7 +19,12 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
   const [convoList, setConvoList] = useState<GetConversationsType[]>(conversations);
   const [page, setPage] = useState<number | null>(nextPage);
   const isFetchingRef = useRef(false);
-  const sentinalRef = useRef<HTMLDivElement>(null)
+  const sentinalRef = useRef<HTMLDivElement>(null);
+  const [errors, setErrors] = useState<string>("")
+
+  const handleCreateConversation = async () => {
+
+  } 
 
   const loadMore = useCallback(async () => {
     if (isFetchingRef.current || page === null) return;
@@ -59,22 +67,29 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
         </div>
 
         {/* Empty conversation list */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div className="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
-            <Users className="size-5 text-muted-foreground" />
+        {convoList.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
+              <Users className="size-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground mb-1">
+              No conversations yet
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your conversations with community members will show up here.
+            </p>
           </div>
-          <p className="text-sm font-medium text-foreground mb-1">
-            No conversations yet
-          </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Your conversations with community members will show up here.
-          </p>
-        </div>
+        )}
+
+        {convoList.map((convo) => (
+          <ConversationCard conversation={convo} />
+        ))}
+
       </div>
 
       {/* ── Chat panel (right) ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Empty state — welcoming CTA */}
+        
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
           <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
             <MessageCircle className="size-8 text-primary" />
@@ -98,7 +113,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
             New Message
           </Button>
 
-         
+
         </div>
 
         {/* Input bar (disabled state) */}
