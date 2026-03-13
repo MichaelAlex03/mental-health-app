@@ -2,11 +2,15 @@
 
 import { GetConversationsType } from '@/app/schemas/messages'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getConversations } from '../actions'
+import { createConversastion, getConversations } from '../actions'
 import { MessageCircle, Search, Send, Paperclip, Smile, Heart, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import ConversationCard from './conversation-cards';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { useRouter } from 'next/navigation';
 
 
 interface MessagesClientProps {
@@ -16,14 +20,35 @@ interface MessagesClientProps {
 
 const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
 
+  const router = useRouter();
+
+
   const [convoList, setConvoList] = useState<GetConversationsType[]>(conversations);
   const [page, setPage] = useState<number | null>(nextPage);
   const isFetchingRef = useRef(false);
   const sentinalRef = useRef<HTMLDivElement>(null);
   const [errors, setErrors] = useState<string>("")
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [recipientName, setRecipientName] = useState("");
+
 
   const handleCreateConversation = async () => {
+    try {
+      const response = await createConversastion(recipientName);
+      if(!response.success){
+        setErrors(response.error)
+        return;
+      }
+      setDialogOpen(false)
+      setRecipientName("")
+      router.refresh()
+    } catch (error) {
+      if (isRedirectError(error)){
+        throw error
+      }
 
+      setErrors("Unhandled error please try again")
+    }
   } 
 
   const loadMore = useCallback(async () => {
@@ -34,6 +59,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
       const { validatedData, nextPage } = await getConversations(page)
       setConvoList((prev) => [...prev, ...validatedData])
       setPage(nextPage)
+      setErrors("")
     } finally {
       isFetchingRef.current = true
     }
@@ -108,11 +134,46 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
             All messages are private between you and the other person.
           </p>
 
-          <Button size="lg" className="rounded-xl px-6">
+          <Button size="lg" className="rounded-xl px-6" onClick={() => {
+            setDialogOpen(true)
+            setRecipientName("")
+            setErrors("")
+            }}>
             <MessageCircle className="size-4" />
             New Message
           </Button>
 
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>New Message</DialogTitle>
+                <DialogDescription>
+                  Enter a display name to start a conversation.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="recipient">Display Name</Label>
+                <Input
+                  id="recipient"
+                  placeholder="Enter display name..."
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                />
+                {errors && <p className="text-sm text-destructive">{errors}</p>}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => handleCreateConversation()}
+                  disabled={!recipientName.trim()}
+                >
+                  Start Conversation
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
         </div>
 

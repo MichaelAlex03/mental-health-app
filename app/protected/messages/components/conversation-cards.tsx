@@ -10,11 +10,11 @@ const ConversationCard = ({ conversation }: ConversationProps) => {
     return (
         <div className='flex flex-row'>
             <div className='rounded-full'>
-                <Image
+                {/* <Image
                     src={conversation.recipient_avatar_url}
                     alt='avatar_url'
                     fill
-                />
+                /> */}
             </div>
             <div className='flex flex-col'>
                 <p className='text-xl text-white'>{conversation.recipient_display_name}</p>

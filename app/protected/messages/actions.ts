@@ -3,6 +3,7 @@
 import { getConversationsSchema } from "@/app/schemas/messages";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { success } from "zod";
 
 /** For this server action we throw since we are calling from a server component
  *  so if it cant fetch the conversations we want the error page to show up
@@ -29,6 +30,8 @@ export const getConversations = async (page: number) => {
     if (error) {
         throw error
     }
+
+    console.log(data[0])
 
     const conversations = getConversationsSchema.array().safeParse(data)
 
@@ -62,6 +65,27 @@ export const createConversastion = async (recipientDisplayName: string) => {
     }
 
     const userId = user.id;
+
+    //Cannot make a conversatuion with yourself
+    const { data: userData, error: userError } = await client
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+    if (userError){
+        return {
+            success: false,
+            error: 'could not fetch current user data'
+        }
+    }
+
+    if (userData.display_name === recipientDisplayName){
+        return {
+            success: false,
+            error: "cannot create a conversation with yourself"
+        }
+    }
 
     // Get recipients user_id by display_name
     const { data: recipientData, error: recipientError } = await client
@@ -114,7 +138,7 @@ export const createConversastion = async (recipientDisplayName: string) => {
 
     return {
         success: true,
-        error: false
+        error: ''
     }
 
 }
