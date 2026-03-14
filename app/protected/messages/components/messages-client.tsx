@@ -30,7 +30,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
   const [errors, setErrors] = useState<string>("")
   const [dialogOpen, setDialogOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
-  const [activeConversation, setActiveConversation] = useState<number>();
+  const [activeConversation, setActiveConversation] = useState<number>(0);
 
 
   const handleCreateConversation = async () => {
@@ -109,7 +109,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
         )}
 
         {convoList.map((convo) => (
-          <ConversationCard conversation={convo} />
+          <ConversationCard conversation={convo} setConversation={setActiveConversation}/>
         ))}
 
       </div>

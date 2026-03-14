@@ -4,6 +4,7 @@ import React from 'react'
 
 interface ConversationProps {
     conversation: GetConversationsType
+    setConversation: React.Dispatch<React.SetStateAction<number>>
 }
 
 const ConversationCard = ({ conversation }: ConversationProps) => {

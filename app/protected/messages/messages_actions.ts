@@ -19,7 +19,7 @@ export const getMessagesForConversations = async (conversationId: number, cursor
     const { data, error } = await query;
 
     if (error) {
-        throw error
+        throw new Error('Unable to fetch messages')
     }
 
     const hasMore = data.length > limit
