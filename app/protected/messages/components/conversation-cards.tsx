@@ -7,20 +7,41 @@ interface ConversationProps {
 }
 
 const ConversationCard = ({ conversation }: ConversationProps) => {
+    const initial = conversation.recipient_display_name.substring(0, 1).toUpperCase()
+    const isUnread = conversation.last_message_sender_id === conversation.recipient_user_id
+
     return (
-        <div className='flex flex-row'>
-            <div className='rounded-full'>
-                {/* <Image
-                    src={conversation.recipient_avatar_url}
-                    alt='avatar_url'
-                    fill
-                /> */}
+        <div className='flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border last:border-b-0'>
+            <div className='relative size-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden'>
+                {conversation.recipient_avatar_url ? (
+                    <Image
+                        src={conversation.recipient_avatar_url}
+                        alt={`${conversation.recipient_display_name}'s avatar`}
+                        fill
+                        className='object-cover'
+                    />
+                ) : (
+                    <span className='text-sm font-semibold text-primary'>
+                        {initial}
+                    </span>
+                )}
             </div>
-            <div className='flex flex-col'>
-                <p className='text-xl text-white'>{conversation.recipient_display_name}</p>
-                <p className={conversation.last_message_sender_id === conversation.recipient_user_id ? "text-bold text-base text-white" : 'text-base text-white'}>
-                    {conversation.last_message_content}
-                </p>
+            <div className='flex-1 min-w-0'>
+                <div className='flex items-center justify-between gap-2'>
+                    <p className={`text-sm truncate ${isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
+                        {conversation.recipient_display_name}
+                    </p>
+                    {conversation.last_message_sent_at && (
+                        <span className='text-xs text-muted-foreground shrink-0'>
+                            {new Date(conversation.last_message_sent_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                    )}
+                </div>
+                {conversation.last_message_content && (
+                    <p className={`text-xs truncate mt-0.5 ${isUnread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                        {conversation.last_message_content}
+                    </p>
+                )}
             </div>
         </div>
     )

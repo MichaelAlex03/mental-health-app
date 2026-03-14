@@ -2,7 +2,7 @@
 
 import { GetConversationsType } from '@/app/schemas/messages'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createConversastion, getConversations } from '../actions'
+import { createConversastion, getConversations } from '../conversation_actions'
 import { MessageCircle, Search, Send, Paperclip, Smile, Heart, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
   const [errors, setErrors] = useState<string>("")
   const [dialogOpen, setDialogOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
+  const [activeConversation, setActiveConversation] = useState<number>();
 
 
   const handleCreateConversation = async () => {

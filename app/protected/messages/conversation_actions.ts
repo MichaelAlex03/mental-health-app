@@ -31,8 +31,6 @@ export const getConversations = async (page: number) => {
         throw error
     }
 
-    console.log(data[0])
-
     const conversations = getConversationsSchema.array().safeParse(data)
 
     if (!conversations.success) {
