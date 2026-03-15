@@ -87,7 +87,11 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
     }, [conversationId])
 
     return (
-        <div>MessageScreen</div>
+        <div>MessageScreen
+
+            <div ref={sentinalRef} style={{ height: 1 }} />
+        </div>
+
     )
 }
 
