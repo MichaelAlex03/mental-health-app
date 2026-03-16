@@ -28,7 +28,7 @@ const MyThreadFeed = async ({ searchParams }: Props) => {
 
     const params = await searchParams
     const categoryId = params?.category ? String(params.category) : undefined
-    const { data: myThreads, nextCursor } = await getThreads(null,)
+    const { data: myThreads, nextCursor } = await getThreads(null)
 
     return <MyThreadsClient threads={myThreads} categories={categories} nextCursor={nextCursor}/>
 }

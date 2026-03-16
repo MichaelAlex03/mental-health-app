@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import ConversationCard from './conversation-cards';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { useRouter } from 'next/navigation';
+import MessageScreen from './message-screen';
 
 
 interface MessagesClientProps {
@@ -36,7 +37,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
   const handleCreateConversation = async () => {
     try {
       const response = await createConversastion(recipientName);
-      if(!response.success){
+      if (!response.success) {
         setErrors(response.error)
         return;
       }
@@ -44,13 +45,13 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
       setRecipientName("")
       router.refresh()
     } catch (error) {
-      if (isRedirectError(error)){
+      if (isRedirectError(error)) {
         throw error
       }
 
       setErrors("Unhandled error please try again")
     }
-  } 
+  }
 
   const loadMore = useCallback(async () => {
     if (isFetchingRef.current || page === null) return;
@@ -108,15 +109,15 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
           </div>
         )}
 
-        {convoList.map((convo) => (
-          <ConversationCard conversation={convo} setConversation={setActiveConversation}/>
+        {convoList.map((convo, index) => (
+          <ConversationCard key={index} conversation={convo} setConversation={setActiveConversation} />
         ))}
 
       </div>
 
       {/* ── Chat panel (right) ── */}
-      <div className="flex-1 flex flex-col min-w-0">
-        
+      {activeConversation === 0 ? <div className="flex-1 flex flex-col min-w-0">
+
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
           <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
             <MessageCircle className="size-8 text-primary" />
@@ -139,7 +140,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
             setDialogOpen(true)
             setRecipientName("")
             setErrors("")
-            }}>
+          }}>
             <MessageCircle className="size-4" />
             New Message
           </Button>
@@ -177,9 +178,11 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
           </Dialog>
 
         </div>
+      </div> : <MessageScreen conversationId={activeConversation} />
+      }
 
-        {/* Input bar (disabled state) */}
-        <div className="flex items-center gap-2 p-3 border-t border-border">
+      {/* Input bar (disabled state) */}
+      {/* <div className="flex items-center gap-2 p-3 border-t border-border">
           <button className="size-9 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground/50 cursor-not-allowed">
             <Paperclip className="size-[18px]" />
           </button>
@@ -187,7 +190,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
             <Input
               placeholder="Type a message..."
               className="h-10 rounded-xl bg-muted pr-10 text-sm"
-              disabled
+              disabled={activeConversation == 0}
             />
             <button className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 cursor-not-allowed">
               <Smile className="size-[18px]" />
@@ -196,8 +199,7 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
           <button className="size-10 shrink-0 rounded-xl bg-primary/50 flex items-center justify-center cursor-not-allowed">
             <Send className="size-[18px] text-primary-foreground" />
           </button>
-        </div>
-      </div>
+        </div> */}
     </div>
   );
 }

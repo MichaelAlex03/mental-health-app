@@ -24,6 +24,7 @@ import { useState } from "react";
 import { createTopicThreadSchema } from "@/app/schemas/post";
 import { createTopicThread } from "../actions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { useRouter } from "next/navigation";
 
 const MEMBER_MAX = 20;
 
@@ -32,6 +33,7 @@ export function CreateThreadDialog({
 }: {
   categories: Category[];
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState<boolean>(false);
 
   const [title, setTitle] = useState<string>("");
@@ -76,6 +78,7 @@ export function CreateThreadDialog({
       handleResetForm();
       setErrors({})
       setOpen(false)
+      router.refresh()
 
     } catch (error) {
       if (isRedirectError(error)) {

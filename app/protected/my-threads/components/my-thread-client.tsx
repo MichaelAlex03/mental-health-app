@@ -24,6 +24,12 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
     const isFetchingRef = useRef(false)
     const sentinalRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        setThreadsList(threads);
+        setCursor(nextCursor);
+        setHasMore(nextCursor !== null);
+    }, [threads, nextCursor]);
+
     const loadMore = useCallback(async () => {
         if (isFetchingRef.current || !hasMore) return;
 

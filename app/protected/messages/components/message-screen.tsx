@@ -78,6 +78,7 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
                     filter: `conversation_id=eq.${conversationId}`
                 },
                 (payload) => {
+                    console.log("message", payload)
                     setMessages((prev: any) => [...prev, payload.new])
                 }
             )

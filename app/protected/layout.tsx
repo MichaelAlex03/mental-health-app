@@ -11,6 +11,7 @@ import {
 import { Bell, Settings, LogOut } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { createClient } from "@/lib/supabase/server";
+import { LogoutButton } from "@/components/logout-button";
 
 export default async function ProtectedLayout({
   children,
@@ -52,7 +53,7 @@ export default async function ProtectedLayout({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive">
-                <LogOut />
+                <LogoutButton />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -12,7 +12,7 @@ const ConversationCard = ({ conversation }: ConversationProps) => {
     const isUnread = conversation.last_message_sender_id === conversation.recipient_user_id
 
     return (
-        <div className='flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border last:border-b-0'>
+        <button type='button' className='flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border last:border-b-0'>
             <div className='relative size-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden'>
                 {conversation.recipient_avatar_url ? (
                     <Image
@@ -44,7 +44,7 @@ const ConversationCard = ({ conversation }: ConversationProps) => {
                     </p>
                 )}
             </div>
-        </div>
+        </button>
     )
 }
 
