@@ -58,10 +58,10 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
     const client = createClient()
     const limit = 10;
 
-    let query = (await client).from('topic_threads').select('*').order('id', {ascending: true}).limit(limit + 1)
+    let query = (await client).from('topic_threads').select('*').order('id', {ascending: false}).limit(limit + 1)
 
     if (cursor){
-        query = query.gt('id', cursor)
+        query = query.lt('id', cursor)
     }
 
     if(categoryId){

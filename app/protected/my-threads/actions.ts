@@ -11,14 +11,16 @@ export const getThreads = async (cursor: number | null) => {
         throw new Error('User does not exist')
     }
 
-    let query =  client
+    let query = client
         .from('topic_threads')
         .select('*')
         .eq('created_by', user.id)
+        .order('id', { ascending: false })
         .limit(limit + 1)
 
-    if (cursor){
-        query = query.gt('id', cursor)
+
+    if (cursor) {
+        query = query.lt('id', cursor)
     }
 
     const { data, error } = await query

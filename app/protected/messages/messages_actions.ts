@@ -10,6 +10,7 @@ export const getMessagesForConversations = async (conversationId: number, cursor
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
+        .order('id', { ascending: false })
         .limit(limit + 1)
 
     if (cursor) {
@@ -33,5 +34,5 @@ export const getMessagesForConversations = async (conversationId: number, cursor
 }
 
 export const createMessage = async (createMessage: any) => {
-    
+
 }
