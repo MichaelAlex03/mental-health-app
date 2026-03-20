@@ -2,30 +2,41 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getMessagesForConversations } from '../messages_actions'
+import { getMessagesForConversations, sendMessage } from '../messages_actions'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, Send } from 'lucide-react'
+import { MessageType, SendMessageType } from '@/app/schemas/messages'
 
 interface MessageScreenProps {
     conversationId: number
+    recipientName: string
+    recipientAvatarUrl: string | null
+    currentUserId: string
+    recipientUserId: string
+    onBack?: () => void
 }
 
-const MessageScreen = ({ conversationId }: MessageScreenProps) => {
+const MessageScreen = ({
+    conversationId,
+    recipientName,
+    recipientAvatarUrl,
+    currentUserId,
+    recipientUserId,
+    onBack,
+}: MessageScreenProps) => {
     const supabase = createClient();
 
-
-    // Want cursor based pagination to avoid loading duplicate messages fetched
-    const [messages, setMessages] = useState([] as any);
+    const [messages, setMessages] = useState<MessageType[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>()
+    const [messageInput, setMessageInput] = useState('')
 
-    /**  We add convoId to dependency because even when
-     *   convoId is changed in parent this function wont
-     *   rerender because it only depends on cursor state
-     *   we could add a key property to the message screen
-     *   component to make the entire component fully reset
-     *   which includes the function
-     * */
+    const initial = recipientName.substring(0, 1).toUpperCase()
+
     const loadMore = useCallback(async () => {
         if (isFetchingRef.current || cursor === null) return;
 
@@ -34,7 +45,7 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
         try {
             const { messages: convoMessages, nextCursor } = await getMessagesForConversations(conversationId, cursor);
             setCursor(nextCursor)
-            setMessages((prev: any) => [...prev, ...convoMessages])
+            setMessages((prev: MessageType[]) => [...prev, ...convoMessages])
         } catch (error) {
             setErrors(error as string)
         } finally {
@@ -43,7 +54,6 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
 
     }, [cursor, conversationId])
 
-    // Cleanup observer so observer is not observing unmounted component
     useEffect(() => {
         if (!sentinalRef.current) return
         const observer = new IntersectionObserver(
@@ -54,8 +64,6 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
         return () => observer.disconnect()
     }, [loadMore])
 
-
-    // Fetching messages on mount
     useEffect(() => {
         const fetchMessage = async () => {
             const { messages: convoMessages, nextCursor } = await getMessagesForConversations(conversationId, null);
@@ -65,7 +73,7 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
         fetchMessage();
     }, [conversationId])
 
-    // Establishing connection to conversation websocket
+    // Payload.new is the row that was just inserted into the messages table
     useEffect(() => {
         const channel = supabase
             .channel(`conversation-${conversationId}`)
@@ -78,21 +86,150 @@ const MessageScreen = ({ conversationId }: MessageScreenProps) => {
                     filter: `conversation_id=eq.${conversationId}`
                 },
                 (payload) => {
-                    console.log("message", payload)
-                    setMessages((prev: any) => [...prev, payload.new])
+                    setMessages((prev: MessageType[]) => [payload.new as MessageType, ...prev])
                 }
             )
+            .subscribe()
         return () => {
             supabase.removeChannel(channel)
         }
     }, [conversationId])
 
+    console.log("C", conversationId)
+
+    console.log("Messages", messages)
+
+    const handleSend = async () => {
+        if (!messageInput.trim()) return
+        let body: SendMessageType = {
+            content: messageInput,
+            recipient_id: recipientUserId,
+            sender_id: currentUserId,
+            conversation_id: conversationId,
+        }
+
+        const sendMessageResult = await sendMessage(body);
+
+        if (!sendMessageResult.success) {
+            setErrors(sendMessageResult.error);
+            return
+        }
+
+        setMessageInput('')
+        setErrors('')
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            handleSend()
+        }
+    }
+
+    const formatTime = (dateString: string) => {
+        return new Date(dateString).toLocaleTimeString(undefined, {
+            hour: 'numeric',
+            minute: '2-digit',
+        })
+    }
+
+    console.log(messages)
+
     return (
-        <div>MessageScreen
+        <div className="flex-1 flex flex-col min-w-0">
+            {/* ── Header ── */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                {onBack && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0"
+                        onClick={onBack}
+                    >
+                        <ArrowLeft className="size-4" />
+                    </Button>
+                )}
+                <div className="relative size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                    {recipientAvatarUrl ? (
+                        <img
+                            src={recipientAvatarUrl}
+                            alt={`${recipientName}'s avatar`}
+                            className="size-full object-cover"
+                        />
+                    ) : (
+                        <span className="text-sm font-semibold text-primary">
+                            {initial}
+                        </span>
+                    )}
+                </div>
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate">{recipientName}</p>
+                </div>
+            </div>
 
-            <div ref={sentinalRef} style={{ height: 1 }} />
+            {/* ── Messages area ── */}
+            <div
+                ref={scrollContainerRef}
+                className="flex-1 overflow-y-auto px-4 py-4 flex flex-col-reverse gap-1"
+            >
+                {messages.map((msg: MessageType) => {
+                    const isOwn = msg.sender_id === currentUserId
+
+                    return (
+                        <div
+                            key={msg.id}
+                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                        >
+                            <div
+                                className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${isOwn
+                                    ? 'bg-primary text-primary-foreground rounded-br-md'
+                                    : 'bg-muted text-foreground rounded-bl-md'
+                                    }`}
+                            >
+                                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                                {msg.sent_at && (
+                                    <p
+                                        className={`text-[10px] mt-1 ${isOwn
+                                            ? 'text-primary-foreground/60'
+                                            : 'text-muted-foreground'
+                                            }`}
+                                    >
+                                        {formatTime(msg.sent_at)}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )
+                })}
+
+                {/* Sentinel for infinite scroll (loads older messages) */}
+                <div ref={sentinalRef} className="h-px shrink-0" />
+            </div>
+
+            {/* ── Input bar ── */}
+            <div className="flex items-center gap-2 p-3 border-t border-border">
+                <div className="flex-1">
+                    <Input
+                        placeholder="Type a message..."
+                        className="h-10 rounded-xl bg-muted text-sm"
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                </div>
+                <Button
+                    size="icon"
+                    className="size-10 shrink-0 rounded-xl"
+                    onClick={handleSend}
+                    disabled={!messageInput.trim()}
+                >
+                    <Send className="size-4" />
+                </Button>
+            </div>
+            {errors && (
+                <p className="px-3 pb-2 text-xs text-destructive">{errors}</p>
+            )}
         </div>
-
     )
 }
 

@@ -3,7 +3,7 @@
 import { GetConversationsType } from '@/app/schemas/messages'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createConversastion, getConversations } from '../conversation_actions'
-import { MessageCircle, Search, Send, Paperclip, Smile, Heart, Users } from "lucide-react";
+import { MessageCircle, Plus, Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -17,9 +17,10 @@ import MessageScreen from './message-screen';
 interface MessagesClientProps {
   conversations: GetConversationsType[]
   nextPage: number | null
+  currentUserId: string
 }
 
-const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
+const MessagesClient = ({ conversations, nextPage, currentUserId }: MessagesClientProps) => {
 
   const router = useRouter();
 
@@ -32,6 +33,10 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
   const [activeConversation, setActiveConversation] = useState<number>(0);
+
+  const handleSetActiveConversation = (convoId: number) => {
+    setActiveConversation(convoId)
+  }
 
 
   const handleCreateConversation = async () => {
@@ -83,7 +88,21 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
       {/* ── Conversation list (left panel) ── */}
       <div className="w-[320px] shrink-0 flex flex-col border-r border-border">
         <div className="p-4 pb-3 border-b border-border">
-          <h2 className="text-lg font-semibold mb-3">Messages</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Messages</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={() => {
+                setDialogOpen(true)
+                setRecipientName("")
+                setErrors("")
+              }}
+            >
+              <Plus className="size-4" />
+            </Button>
+          </div>
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
@@ -110,7 +129,11 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
         )}
 
         {convoList.map((convo, index) => (
-          <ConversationCard key={index} conversation={convo} setConversation={setActiveConversation} />
+          <ConversationCard
+            key={index}
+            conversation={convo}
+            setActiveConversation={handleSetActiveConversation}
+          />
         ))}
 
       </div>
@@ -178,28 +201,23 @@ const MessagesClient = ({ conversations, nextPage }: MessagesClientProps) => {
           </Dialog>
 
         </div>
-      </div> : <MessageScreen conversationId={activeConversation} />
+      </div> : (() => {
+        const activeConvo = convoList.find(c => c.conversation_id === activeConversation)
+        return (
+          <MessageScreen
+            key={activeConversation}
+            conversationId={activeConversation}
+            recipientName={activeConvo?.recipient_display_name ?? ''}
+            recipientAvatarUrl={activeConvo?.recipient_avatar_url ?? null}
+            currentUserId={currentUserId}
+            recipientUserId={activeConvo!.recipient_user_id}
+            onBack={() => setActiveConversation(0)}
+          />
+        )
+      })()
       }
 
-      {/* Input bar (disabled state) */}
-      {/* <div className="flex items-center gap-2 p-3 border-t border-border">
-          <button className="size-9 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground/50 cursor-not-allowed">
-            <Paperclip className="size-[18px]" />
-          </button>
-          <div className="flex-1 relative">
-            <Input
-              placeholder="Type a message..."
-              className="h-10 rounded-xl bg-muted pr-10 text-sm"
-              disabled={activeConversation == 0}
-            />
-            <button className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 cursor-not-allowed">
-              <Smile className="size-[18px]" />
-            </button>
-          </div>
-          <button className="size-10 shrink-0 rounded-xl bg-primary/50 flex items-center justify-center cursor-not-allowed">
-            <Send className="size-[18px] text-primary-foreground" />
-          </button>
-        </div> */}
+  
     </div>
   );
 }

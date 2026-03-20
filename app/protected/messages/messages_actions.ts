@@ -1,5 +1,6 @@
 "use server"
 
+import { sendMessageSchema, SendMessageType } from "@/app/schemas/messages";
 import { createClient } from "@/lib/supabase/server"
 
 export const getMessagesForConversations = async (conversationId: number, cursor: number | null) => {
@@ -33,6 +34,37 @@ export const getMessagesForConversations = async (conversationId: number, cursor
 
 }
 
-export const createMessage = async (createMessage: any) => {
+export const sendMessage = async (createMessage: SendMessageType) => {
+    const client = await createClient();
 
+    const validMessage = sendMessageSchema.safeParse(createMessage);
+
+    if(!validMessage.success){
+        return {
+            success: false,
+            data: null,
+            error: 'Invalid Message'
+        }
+    }
+    
+    const { data: message, error } = await client
+        .from('messages')
+        .insert(createMessage)
+        .select()
+        .single()
+
+    if (error){
+        return {
+            success: false,
+            data: null,
+            error: 'Could not send message'
+        }
+    }
+    
+
+    return {
+        success: true,
+        data: message,
+        error: 'No error'
+    }
 }

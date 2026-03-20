@@ -10,4 +10,23 @@ export const getConversationsSchema = z.object({
     last_message_sender_id: z.uuidv4().nullable()
 })
 
+export const messageSchema = z.object({
+    id: z.number(),
+    sent_at: z.string(),
+    content: z.string(),
+    recipient_id: z.uuidv4(),
+    sender_id: z.uuidv4(),
+    conversation_id: z.number(),
+})
+
+export const sendMessageSchema = z.object({
+    content: z.string(),
+    recipient_id: z.uuidv4(),
+    sender_id: z.uuidv4(),
+    conversation_id: z.number(),
+})
+
+export type MessageType = z.infer<typeof messageSchema>;
+export type SendMessageType = z.infer<typeof sendMessageSchema>;
+
 export type GetConversationsType = z.infer<typeof getConversationsSchema>;
