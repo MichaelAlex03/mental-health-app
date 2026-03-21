@@ -32,7 +32,7 @@ const MessageScreen = ({
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
-    const [errors, setErrors] = useState<string>()
+    const [errors, setErrors] = useState<string>('')
     const [messageInput, setMessageInput] = useState('')
 
     const initial = recipientName.substring(0, 1).toUpperCase()
@@ -95,10 +95,6 @@ const MessageScreen = ({
         }
     }, [conversationId])
 
-    console.log("C", conversationId)
-
-    console.log("Messages", messages)
-
     const handleSend = async () => {
         if (!messageInput.trim()) return
         let body: SendMessageType = {
@@ -132,8 +128,6 @@ const MessageScreen = ({
             minute: '2-digit',
         })
     }
-
-    console.log(messages)
 
     return (
         <div className="flex-1 flex flex-col min-w-0">

@@ -8,7 +8,7 @@ import { success } from "zod";
 /** For this server action we throw since we are calling from a server component
  *  so if it cant fetch the conversations we want the error page to show up
  *  */
-export const getConversations = async (page: number) => {
+export const getConversations = async () => {
 
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
@@ -19,12 +19,9 @@ export const getConversations = async (page: number) => {
 
     const userId = user.id;
 
-    const limit = 20;
-    const offset = (page - 1) * 20 // How many rows we skip (Initally 0)
 
-    const { data, error } = await client.rpc('get_user_conversation', {
+    const { data, error } = await client.rpc('get_user_conversations', {
         p_user_id: userId,
-        skip: offset
     })
 
     if (error) {
@@ -37,13 +34,9 @@ export const getConversations = async (page: number) => {
         throw new Error('Invalid data returned')
     }
 
-    const hasMore = data.length > limit
-    const nextPage = hasMore ? page + 1 : null
-    const convos = hasMore ? conversations.data.slice(0, -1) : conversations.data
-
     return {
-        validatedData: convos,
-        nextPage
+        validatedData: conversations.data,
+
     }
 }
 

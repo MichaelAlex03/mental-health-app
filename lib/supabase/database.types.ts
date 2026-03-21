@@ -325,8 +325,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_conversation: {
-        Args: { p_user_id: string; skip: number }
+      get_user_conversations: {
+        Args: { p_user_id: string }
         Returns: {
           conversation_id: number
           last_message_content: string

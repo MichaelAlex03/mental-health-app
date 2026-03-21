@@ -10,10 +10,10 @@ const MessageServerComponent = async () => {
         throw new Error('User does not exist')
     }
 
-    const { validatedData: conversations, nextPage } = await getConversations(1)
+    const { validatedData: conversations } = await getConversations()
 
     return (
-        <MessagesClient conversations={conversations} nextPage={nextPage} currentUserId={user.id}/>
+        <MessagesClient conversations={conversations} currentUserId={user.id}/>
     )
 }
 
