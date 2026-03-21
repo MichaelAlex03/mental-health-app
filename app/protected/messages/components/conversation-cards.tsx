@@ -28,22 +28,25 @@ const ConversationCard = ({ conversation, setActiveConversation }: ConversationP
                     </span>
                 )}
             </div>
-            <div className='flex-1 min-w-0'>
-                <div className='flex items-center justify-between gap-2'>
+            <div className='flex-1 flex flex-row min-w-0 justify-between'>
+                <div className='flex flex-col items-start justify-between'>
                     <p className={`text-sm truncate ${isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
-                        {conversation.recipient_display_name}
+                        {conversation.recipient_display_name.length >= 15 ? `${conversation.recipient_display_name.substring(0, 15)}...` : conversation.recipient_display_name}
                     </p>
+                    {conversation.last_message_content && (
+                        <p className={`text-xs truncate mt-0.5 ${isUnread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                            {conversation.last_message_content}
+                        </p>
+                    )}
+
+                </div>
+                <div>
                     {conversation.last_message_sent_at && (
                         <span className='text-xs text-muted-foreground shrink-0'>
                             {new Date(conversation.last_message_sent_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </span>
                     )}
                 </div>
-                {conversation.last_message_content && (
-                    <p className={`text-xs truncate mt-0.5 ${isUnread ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
-                        {conversation.last_message_content}
-                    </p>
-                )}
             </div>
         </button>
     )
