@@ -1,7 +1,7 @@
 "use client"
 
 import { GetConversationsType } from '@/app/schemas/messages'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createConversastion, getConversations } from '../conversation_actions'
 import { MessageCircle, Plus, Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,8 +23,8 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
 
   const router = useRouter();
 
-
-  const [convoList, setConvoList] = useState<GetConversationsType[]>(conversations);
+  const [filteredConversations, setFilteredConversations] = useState<GetConversationsType[]>(conversations);
+  const [searchData, setSearchData] = useState<string>('');
   const [errors, setErrors] = useState<string>("")
   const [dialogOpen, setDialogOpen] = useState(false);
   const [recipientName, setRecipientName] = useState("");
@@ -32,6 +32,11 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
 
   const handleSetActiveConversation = (convoId: number) => {
     setActiveConversation(convoId)
+  }
+
+  const handleBack = () => {
+    router.refresh()
+    setActiveConversation(0)
   }
 
 
@@ -54,12 +59,26 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
     }
   }
 
+  useEffect(() => {
+    if (searchData === '') setFilteredConversations(conversations)
+    const filtered = conversations.filter((c) => 
+      c.recipient_display_name.toLowerCase().includes(searchData.toLowerCase())
+    )
+    setFilteredConversations(filtered);
+  }, [searchData])
+
+  // Used for syncing client state conversations with server conversations
+  useEffect(() => {
+    setFilteredConversations(conversations)
+  }, [conversations])
 
   return (
     <div className="flex h-[calc(100vh-104px)] rounded-xl border border-border bg-card overflow-hidden">
       {/* ── Conversation list (left panel) ── */}
-      <div className="w-[320px] shrink-0 flex flex-col border-r border-border">
-        <div className="p-4 pb-3 border-b border-border">
+      <div
+        className={`shrink-0 flex flex-col border-r border-border transition-[width] duration-300 ease-in-out overflow-hidden ${activeConversation === 0 ? "w-[320px]" : "w-0 border-r-0"}`}
+      >
+        <div className="min-w-[320px] p-4 pb-3 border-b border-border">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Messages</h2>
             <Button
@@ -80,13 +99,14 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
             <Input
               placeholder="Search conversations..."
               className="pl-8 h-9 rounded-lg bg-muted text-sm"
-              disabled
+              value={searchData}
+              onChange={(e) => setSearchData(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Empty conversation list */}
-        {convoList.length === 0 && (
+        {/* No conversations at all */}
+        {conversations.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <div className="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
               <Users className="size-5 text-muted-foreground" />
@@ -100,7 +120,22 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
           </div>
         )}
 
-        {convoList.map((convo, index) => (
+        {/* No results for search */}
+        {conversations.length > 0 && filteredConversations.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="size-10 rounded-lg bg-muted flex items-center justify-center mb-3">
+              <Search className="size-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground mb-1">
+              No results found
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              No conversations match &ldquo;{searchData}&rdquo;
+            </p>
+          </div>
+        )}
+
+        {filteredConversations.map((convo, index) => (
           <ConversationCard
             key={index}
             conversation={convo}
@@ -174,7 +209,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
 
         </div>
       </div> : (() => {
-        const activeConvo = convoList.find(c => c.conversation_id === activeConversation)
+        const activeConvo = conversations.find(c => c.conversation_id === activeConversation)
         return (
           <MessageScreen
             key={activeConversation}
@@ -183,7 +218,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
             recipientAvatarUrl={activeConvo?.recipient_avatar_url ?? null}
             currentUserId={currentUserId}
             recipientUserId={activeConvo!.recipient_user_id}
-            onBack={() => setActiveConversation(0)}
+            onBack={handleBack}
           />
         )
       })()

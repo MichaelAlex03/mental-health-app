@@ -13,7 +13,7 @@ const MessageServerComponent = async () => {
     const { validatedData: conversations } = await getConversations()
 
     return (
-        <MessagesClient key={conversations.length} conversations={conversations} currentUserId={user.id}/>
+        <MessagesClient conversations={conversations} currentUserId={user.id}/>
     )
 }
 
