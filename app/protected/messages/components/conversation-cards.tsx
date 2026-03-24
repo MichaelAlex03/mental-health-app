@@ -8,6 +8,7 @@ interface ConversationProps {
 
 }
 
+// Add a viewed field to the messages table so that when we get the last message from our queue we can check if you are the recipient and if it has been viewed
 const ConversationCard = ({ conversation, setActiveConversation }: ConversationProps) => {
     const initial = conversation.recipient_display_name.substring(0, 1).toUpperCase()
     const isUnread = conversation.last_message_sender_id === conversation.recipient_user_id
