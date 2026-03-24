@@ -8,12 +8,9 @@ interface ConversationProps {
 
 }
 
-// Add a viewed field to the messages table so that when we get the last message from our queue we can check if you are the recipient and if it has been viewed
 const ConversationCard = ({ conversation, setActiveConversation }: ConversationProps) => {
-    console.log(conversation)
     const initial = conversation.recipient_display_name.substring(0, 1).toUpperCase()
-    const isUnread = (conversation.last_message_sender_id === conversation.recipient_user_id) && (conversation.last_message_viewed === false)
-    console.log("RRR", isUnread)
+    const isUnread = (conversation.last_message_sender_id === conversation.recipient_user_id) && (conversation.last_message_viewed === false);
 
     return (
         <button type='button' onClick={() => setActiveConversation(conversation.conversation_id)} className='flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors border-b border-border last:border-b-0'>

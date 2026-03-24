@@ -81,7 +81,7 @@ export type Database = {
           recipient_id: string
           sender_id: string
           sent_at: string
-          viewed: boolean | null
+          viewed: boolean
         }
         Insert: {
           content: string
@@ -90,7 +90,7 @@ export type Database = {
           recipient_id: string
           sender_id: string
           sent_at?: string
-          viewed?: boolean | null
+          viewed?: boolean
         }
         Update: {
           content?: string
@@ -99,7 +99,7 @@ export type Database = {
           recipient_id?: string
           sender_id?: string
           sent_at?: string
-          viewed?: boolean | null
+          viewed?: boolean
         }
         Relationships: [
           {
