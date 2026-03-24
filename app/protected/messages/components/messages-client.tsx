@@ -1,6 +1,6 @@
 "use client"
 
-import { GetConversationsType } from '@/app/schemas/messages'
+import { GetConversationsType, MessageType } from '@/app/schemas/messages'
 import { useEffect, useState } from 'react'
 import { createConversastion, getConversations } from '../conversation_actions'
 import { MessageCircle, Plus, Search, Users } from "lucide-react";
@@ -12,6 +12,7 @@ import ConversationCard from './conversation-cards';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { useRouter } from 'next/navigation';
 import MessageScreen from './message-screen';
+import { createClient } from '@/lib/supabase/client';
 
 
 interface MessagesClientProps {
@@ -19,6 +20,7 @@ interface MessagesClientProps {
   currentUserId: string
 }
 
+// **** NEED TO ADD **** when user gets message from recipient that convo moves to the top
 const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) => {
 
   const router = useRouter();
@@ -61,7 +63,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
 
   useEffect(() => {
     if (searchData === '') setFilteredConversations(conversations)
-    const filtered = conversations.filter((c) => 
+    const filtered = conversations.filter((c) =>
       c.recipient_display_name.toLowerCase().includes(searchData.toLowerCase())
     )
     setFilteredConversations(filtered);
@@ -71,6 +73,35 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
   useEffect(() => {
     setFilteredConversations(conversations)
   }, [conversations])
+
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('incoming-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          const msg = payload.new as MessageType
+          setFilteredConversations(prev => {
+            const idx = prev.findIndex(c => c.conversation_id === msg.conversation_id)
+            if (idx === -1) {
+              router.refresh()
+              return prev;
+            }
+            const updated = { ...prev[idx], last_message_content: msg.content, last_message_sent_at: msg.sent_at }
+            return [updated, ...prev.filter((_, i) => i !== idx)]
+          })
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [currentUserId])
 
   return (
     <div className="flex h-[calc(100vh-104px)] rounded-xl border border-border bg-card overflow-hidden">
@@ -224,7 +255,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
       })()
       }
 
-  
+
     </div>
   );
 }
