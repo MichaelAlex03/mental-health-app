@@ -7,7 +7,8 @@ export const getConversationsSchema = z.object({
     recipient_avatar_url: z.string().nullable(),
     last_message_content: z.string().nullable(),
     last_message_sent_at: z.string().nullable(),
-    last_message_sender_id: z.uuidv4().nullable()
+    last_message_sender_id: z.uuidv4().nullable(),
+    last_message_viewed: z.boolean().nullable()
 })
 
 export const messageSchema = z.object({
@@ -17,7 +18,7 @@ export const messageSchema = z.object({
     recipient_id: z.uuidv4(),
     sender_id: z.uuidv4(),
     conversation_id: z.number(),
-    viewed: z.boolean().nullable()
+    viewed: z.boolean()
 })
 
 export const sendMessageSchema = z.object({

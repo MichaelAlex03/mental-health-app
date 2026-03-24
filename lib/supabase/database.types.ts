@@ -328,13 +328,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_conversations: {
+      get_conversations_for_user: {
         Args: { p_user_id: string }
         Returns: {
           conversation_id: number
           last_message_content: string
           last_message_sender_id: string
           last_message_sent_at: string
+          last_message_viewed: boolean
           recipient_avatar_url: string
           recipient_display_name: string
           recipient_user_id: string

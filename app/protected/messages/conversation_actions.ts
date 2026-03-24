@@ -20,7 +20,7 @@ export const getConversations = async () => {
     const userId = user.id;
 
 
-    const { data, error } = await client.rpc('get_user_conversations', {
+    const { data, error } = await client.rpc('get_conversations_for_user', {
         p_user_id: userId,
     })
 

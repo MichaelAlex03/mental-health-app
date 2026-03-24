@@ -94,7 +94,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
               router.refresh()
               return prev;
             }
-            const updated = { ...prev[idx], last_message_content: msg.content, last_message_sent_at: msg.sent_at }
+            const updated = { ...prev[idx], last_message_content: msg.content, last_message_sent_at: msg.sent_at, last_message_viewed: msg.viewed }
             return [updated, ...prev.filter((_, i) => i !== idx)]
           })
         }
