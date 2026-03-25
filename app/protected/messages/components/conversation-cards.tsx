@@ -72,7 +72,7 @@ const ConversationCard = ({ conversation, setActiveConversation }: ConversationP
                     )}
 
                 </div>
-                <div className='flex flex-col items-end'>
+                <div className='flex flex-col items-end gap-2'>
                     {conversation.last_message_sent_at && (
                         <>
                             <span className='text-xs text-muted-foreground shrink-0'>
