@@ -1,6 +1,6 @@
 "use server"
 
-import { sendMessageSchema, SendMessageType } from "@/app/schemas/messages";
+import { MessageType, sendMessageSchema, SendMessageType } from "@/app/schemas/messages";
 import { createClient } from "@/lib/supabase/server"
 
 export const getMessagesForConversations = async (conversationId: number, cursor: number | null) => {
@@ -39,32 +39,55 @@ export const sendMessage = async (createMessage: SendMessageType) => {
 
     const validMessage = sendMessageSchema.safeParse(createMessage);
 
-    if(!validMessage.success){
+    if (!validMessage.success) {
         return {
             success: false,
             data: null,
             error: 'Invalid Message'
         }
     }
-    
+
     const { data: message, error } = await client
         .from('messages')
         .insert(createMessage)
         .select()
         .single()
 
-    if (error){
+    if (error) {
         return {
             success: false,
             data: null,
             error: 'Could not send message'
         }
     }
-    
+
 
     return {
         success: true,
         data: message,
         error: 'No error'
+    }
+}
+
+export const markMessagesAsRead = async (message: MessageType) => {
+    const client = await createClient()
+
+    const { error } = await client
+        .from('messages')
+        .update({ viewed: true })
+        .eq("conversation_id", message.conversation_id)
+        .eq("recipient_id", message.recipient_id)
+        .eq("viewed", false)
+    
+    if (error){
+        return {
+            success: false,
+            error: 'Unable to mark messages as read'
+        }
+    }
+
+    return {
+        success: true,
+        error: ''
     }
 }

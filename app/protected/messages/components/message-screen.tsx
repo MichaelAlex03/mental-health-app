@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getMessagesForConversations, sendMessage } from '../messages_actions'
+import { getMessagesForConversations, markMessagesAsRead, sendMessage } from '../messages_actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Send } from 'lucide-react'
@@ -16,6 +16,14 @@ interface MessageScreenProps {
     recipientUserId: string
     onBack?: () => void
 }
+
+// Figure out how we are going to mark messages as read
+
+// Steps for real time read updates
+/**
+ * 1. When you click on convo, send an update for all messages that have not be read to "read"
+ * 2. Add listener for update events and update all the messages 
+ */
 
 const MessageScreen = ({
     conversationId,
@@ -89,11 +97,45 @@ const MessageScreen = ({
                     setMessages((prev: MessageType[]) => [payload.new as MessageType, ...prev])
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "messages",
+                    filter: `conversation_id=eq.${conversationId}`
+                },
+                (payload) => {
+                    const message = payload.new as MessageType
+                    const idx = messages.findIndex(m => m.id === message.id)
+                    if (idx === -1) return
+                    const updated = { ...messages[idx], viewed: true }
+                    setMessages(prev => prev.map((m, i) => (
+                        i === idx ? updated : m
+                    )))
+                }
+            )
             .subscribe()
         return () => {
             supabase.removeChannel(channel)
         }
     }, [conversationId])
+
+
+    // UseEffect for marking messages as read
+    useEffect(() => {
+        const markReadMessages = async () => {
+            const unreadMessage = messages.find(m => m.viewed === false);
+            if (unreadMessage) {
+                const result = await markMessagesAsRead(unreadMessage);
+                if (!result.success) {
+                    setErrors(result.error)
+                }
+            }
+        }
+        markReadMessages();
+
+    }, [messages])
 
     const handleSend = async () => {
         if (!messageInput.trim()) return
@@ -172,7 +214,7 @@ const MessageScreen = ({
                     return (
                         <div
                             key={msg.id}
-                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                            className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
                         >
                             <div
                                 className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${isOwn
@@ -192,6 +234,7 @@ const MessageScreen = ({
                                     </p>
                                 )}
                             </div>
+                            {msg.viewed && <p>seen</p>}
                         </div>
                     )
                 })}
