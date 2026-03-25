@@ -107,11 +107,8 @@ const MessageScreen = ({
                 },
                 (payload) => {
                     const message = payload.new as MessageType
-                    const idx = messages.findIndex(m => m.id === message.id)
-                    if (idx === -1) return
-                    const updated = { ...messages[idx], viewed: true }
                     setMessages(prev => prev.map((m, i) => (
-                        i === idx ? updated : m
+                        m.id === message.id ? { ...m, viewed: true } : m
                     )))
                 }
             )
