@@ -18,7 +18,8 @@ export const messageSchema = z.object({
     recipient_id: z.uuidv4(),
     sender_id: z.uuidv4(),
     conversation_id: z.number(),
-    viewed: z.boolean()
+    viewed: z.boolean(),
+    viewed_at: z.iso.datetime({ offset: true }).nullable()
 })
 
 export const sendMessageSchema = z.object({

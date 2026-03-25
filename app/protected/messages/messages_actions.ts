@@ -2,6 +2,7 @@
 
 import { MessageType, sendMessageSchema, SendMessageType } from "@/app/schemas/messages";
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation";
 
 export const getMessagesForConversations = async (conversationId: number, cursor: number | null) => {
     const client = await createClient();
@@ -72,14 +73,22 @@ export const sendMessage = async (createMessage: SendMessageType) => {
 export const markMessagesAsRead = async (message: MessageType) => {
     const client = await createClient()
 
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const userId = user.id;
+
     const { error } = await client
         .from('messages')
-        .update({ viewed: true })
+        .update({ viewed: true, viewed_at: new Date().toISOString() })
         .eq("conversation_id", message.conversation_id)
-        .eq("recipient_id", message.recipient_id)
+        .eq("recipient_id", userId)
         .eq("viewed", false)
-    
-    if (error){
+
+    if (error) {
         return {
             success: false,
             error: 'Unable to mark messages as read'

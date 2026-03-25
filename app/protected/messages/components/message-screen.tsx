@@ -108,7 +108,7 @@ const MessageScreen = ({
                 (payload) => {
                     const message = payload.new as MessageType
                     setMessages(prev => prev.map((m, i) => (
-                        m.id === message.id ? { ...m, viewed: true } : m
+                        m.id === message.id ? { ...m, viewed: true, viewed_at: message.viewed_at } : m
                     )))
                 }
             )
@@ -117,6 +117,8 @@ const MessageScreen = ({
             supabase.removeChannel(channel)
         }
     }, [conversationId])
+
+    console.log("TEST", conversationId)
 
 
     // UseEffect for marking messages as read
@@ -205,7 +207,7 @@ const MessageScreen = ({
                 ref={scrollContainerRef}
                 className="flex-1 overflow-y-auto px-4 py-4 flex flex-col-reverse gap-1"
             >
-                {messages.map((msg: MessageType) => {
+                {messages.map((msg: MessageType, i) => {
                     const isOwn = msg.sender_id === currentUserId
 
                     return (
@@ -231,7 +233,11 @@ const MessageScreen = ({
                                     </p>
                                 )}
                             </div>
-                            {msg.viewed && <p>seen</p>}
+                            {i === 0 && msg.viewed === true && (
+                                <p className="text-[10px] text-muted-foreground mt-0.5 px-1">
+                                    Seen {formatTime(msg.viewed_at ?? '')}
+                                </p>
+                            )}
                         </div>
                     )
                 })}

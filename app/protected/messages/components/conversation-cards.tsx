@@ -30,7 +30,7 @@ const ConversationCard = ({ conversation, setActiveConversation }: ConversationP
             </div>
             <div className='flex-1 flex flex-row min-w-0 justify-between'>
                 <div className='flex flex-col items-start justify-between'>
-                    <p className={`text-sm truncate ${isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
+                    <p className={`text-sm truncate font-medium text-foreground`}>
                         {conversation.recipient_display_name.length >= 15 ? `${conversation.recipient_display_name.substring(0, 15)}...` : conversation.recipient_display_name}
                     </p>
                     {conversation.last_message_content && (
