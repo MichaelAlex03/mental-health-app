@@ -55,22 +55,36 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
 
 export const getThreads = async (cursor: number | null, categoryId?: number) => {
 
-    const client = createClient()
+    const client = await createClient()
     const limit = 10;
 
-    let query = (await client).from('topic_threads').select('*').order('id', {ascending: false}).limit(limit + 1)
+    const { data: { user } } = await client.auth.getUser();
 
-    if (cursor){
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const userId = user.id
+
+    let query = client
+        .from('topic_threads')
+        .select('*')
+        .neq("created_by", userId)
+        .eq('is_full', false)
+        .order('id', { ascending: false })
+        .limit(limit + 1)
+
+    if (cursor) {
         query = query.lt('id', cursor)
     }
 
-    if(categoryId){
+    if (categoryId) {
         query = query.eq('category_id', categoryId)
     }
 
-    const { data, error  } = await query
+    const { data, error } = await query
 
-    if(error){
+    if (error) {
         throw error
     }
 
@@ -81,5 +95,43 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
         data: hasMore ? data.slice(0, -1) : data,
         nextCursor: nextCursor
     }
-        
+
+}
+
+export const joinThreadTopic = async (threadId: number) => {
+    if (!threadId) {
+        return {
+            success: false,
+            error: "No threadId given"
+        }
+    }
+
+    const client = await createClient();
+
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const userId = user.id
+
+    const { error } = await client
+        .from('user_to_topics')
+        .insert({
+            topic_id: threadId,
+            user_id: userId
+        })
+
+    if (error) {
+        return {
+            success: false,
+            error: "Could not join group"
+        }
+    }
+
+    return {
+        success: true,
+        error: ""
+    }
 }

@@ -7,12 +7,14 @@ import {
   Bookmark,
   FileText,
   MessageCircle,
+  UsersRound,
 } from "lucide-react";
 
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/protected/home" },
   { icon: FileText, label: "My Threads", href: "/protected/my-threads" },
+  { icon: UsersRound, label: "Joined Threads", href: "/protected/joined-threads" },
   { icon: MessageCircle, label: "Messages", href: "/protected/messages" },
 ];
 

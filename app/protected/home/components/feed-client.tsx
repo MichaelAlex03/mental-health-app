@@ -4,15 +4,19 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-
   MessageCircle,
-
+  Users,
 } from "lucide-react";
 import { ServerThreadTopic } from "@/app/schemas/post";
 import { Category } from "@/app/schemas/categories";
 import { CreateThreadDialog } from "./create-thread-dialog";
+import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getThreads } from "../actions";
+import { getThreads, joinThreadTopic } from "../actions";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+
+// In the future probably want to filter out threads from feed that you are already joined into and ones that are full
+// Also need to filter ones out that we created
 
 
 export function FeedClient({ threads, categories, nextCursor }: { threads: ServerThreadTopic[], categories: Category[], nextCursor: number | null }) {
@@ -23,10 +27,29 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const [hasMore, setHasMore] = useState(nextCursor !== null)
   const isFetchingRef = useRef(false)
   const sentinalRef = useRef<HTMLDivElement>(null)
+  const [errors, setErrors] = useState<string>("");
 
 
   const router = useRouter();
   const searchParams = useSearchParams()
+
+  const joinThread = async (threadId: number) => {
+    try {
+      const joinThreadResponse = await joinThreadTopic(threadId);
+      if (!joinThreadResponse.success){
+        setErrors(joinThreadResponse.error)
+        return;
+      }
+
+      router.push('/protected/joined-threads')
+    } catch (error) {
+      if (isRedirectError(error)) {
+        throw error
+      }
+      setErrors("Something went wrong. Please try again.")
+    }
+  }
+
   const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
 
 
@@ -139,6 +162,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
         <ThreadCard
           key={thread.id}
           thread={thread}
+          onJoin={joinThread}
         />
       ))}
 
@@ -150,21 +174,14 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
 
 function ThreadCard({
   thread,
+  onJoin,
 }: {
   thread: ServerThreadTopic;
-
+  onJoin: (threadId: number) => void;
 }) {
   return (
     <Card className="hover:border-primary transition-colors cursor-pointer">
       <CardContent className="flex flex-col gap-2.5 p-5">
-        {/* Header */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-[0.65rem] font-semibold text-muted-foreground">
-            A
-          </div>
-          <span>Anonymous</span>
-        </div>
-
         {/* Title + body */}
         <h3 className="text-base font-semibold text-card-foreground leading-snug">
           {thread.title}
@@ -173,7 +190,24 @@ function ThreadCard({
           {thread.content}
         </p>
 
-
+        {/* Footer: member count + join */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Users size={14} />
+            <span>{thread.member_count}/{thread.member_max}</span>
+          </div>
+          {!thread.is_full && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                onJoin(thread.id);
+              }}
+            >
+              Join
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
