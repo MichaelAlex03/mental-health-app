@@ -16,7 +16,7 @@ export const getMessagesForConversations = async (conversationId: number, cursor
         .limit(limit + 1)
 
     if (cursor) {
-        query = query.gt('id', cursor)
+        query = query.lt('id', cursor)
     }
 
     const { data, error } = await query;

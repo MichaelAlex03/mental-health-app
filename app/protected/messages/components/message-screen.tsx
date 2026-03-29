@@ -207,40 +207,43 @@ const MessageScreen = ({
                 ref={scrollContainerRef}
                 className="flex-1 overflow-y-auto px-4 py-4 flex flex-col-reverse gap-1"
             >
-                {messages.map((msg: MessageType, i) => {
-                    const isOwn = msg.sender_id === currentUserId
+                {(() => {
+                    const lastOwnIndex = messages.findIndex(m => m.sender_id === currentUserId);
+                    return messages.map((msg: MessageType, i) => {
+                        const isOwn = msg.sender_id === currentUserId
 
-                    return (
-                        <div
-                            key={msg.id}
-                            className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
-                        >
+                        return (
                             <div
-                                className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${isOwn
-                                    ? 'bg-primary text-primary-foreground rounded-br-md'
-                                    : 'bg-muted text-foreground rounded-bl-md'
-                                    }`}
+                                key={msg.id}
+                                className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}
                             >
-                                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                                {msg.sent_at && (
-                                    <p
-                                        className={`text-[10px] mt-1 ${isOwn
-                                            ? 'text-primary-foreground/60'
-                                            : 'text-muted-foreground'
-                                            }`}
-                                    >
-                                        {formatTime(msg.sent_at)}
+                                <div
+                                    className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${isOwn
+                                        ? 'bg-primary text-primary-foreground rounded-br-md'
+                                        : 'bg-muted text-foreground rounded-bl-md'
+                                        }`}
+                                >
+                                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                                    {msg.sent_at && (
+                                        <p
+                                            className={`text-[10px] mt-1 ${isOwn
+                                                ? 'text-primary-foreground/60'
+                                                : 'text-muted-foreground'
+                                                }`}
+                                        >
+                                            {formatTime(msg.sent_at)}
+                                        </p>
+                                    )}
+                                </div>
+                                {i === lastOwnIndex && msg.viewed === true && (
+                                    <p className="text-[10px] text-muted-foreground mt-0.5 px-1">
+                                        Seen {formatTime(msg.viewed_at ?? '')}
                                     </p>
                                 )}
                             </div>
-                            {i === 0 && msg.viewed === true && (
-                                <p className="text-[10px] text-muted-foreground mt-0.5 px-1">
-                                    Seen {formatTime(msg.viewed_at ?? '')}
-                                </p>
-                            )}
-                        </div>
-                    )
-                })}
+                        )
+                    })
+                })()}
 
                 {/* Sentinel for infinite scroll (loads older messages) */}
                 <div ref={sentinalRef} className="h-px shrink-0" />
