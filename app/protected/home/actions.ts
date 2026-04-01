@@ -66,6 +66,17 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
 
     const userId = user.id
 
+    const { data: joined, error: joinedError } = await client
+        .from('user_to_topics')
+        .select('topic_id')
+        .eq('user_id', userId)
+    
+    if (joinedError){
+        throw joinedError
+    }
+
+    const joinedIds = (joined ?? []).map(r => r.topic_id)
+
     let query = client
         .from('topic_threads')
         .select('*')
@@ -81,6 +92,11 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
     if (categoryId) {
         query = query.eq('category_id', categoryId)
     }
+
+    if (joinedIds.length > 0){
+        query = query.not('id', 'in', `(${joinedIds.join(',')})`)
+    }
+
 
     const { data, error } = await query
 
