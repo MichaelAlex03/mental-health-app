@@ -4,6 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   MessageCircle,
   Users,
 } from "lucide-react";
@@ -180,35 +188,62 @@ function ThreadCard({
   onJoin: (threadId: number) => void;
 }) {
   return (
-    <Card className="hover:border-primary transition-colors cursor-pointer">
-      <CardContent className="flex flex-col gap-2.5 p-5">
-        {/* Title + body */}
-        <h3 className="text-base font-semibold text-card-foreground leading-snug">
-          {thread.title}
-        </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-          {thread.content}
-        </p>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Card className="hover:border-primary transition-colors cursor-pointer">
+          <CardContent className="flex flex-col gap-2.5 p-5">
+            <h3 className="text-base font-semibold text-card-foreground leading-snug">
+              {thread.title}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+              {thread.content}
+            </p>
 
-        {/* Footer: member count + join */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Users size={14} />
-            <span>{thread.member_count}/{thread.member_max}</span>
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Users size={14} />
+                <span>{thread.member_count}/{thread.member_max}</span>
+              </div>
+              {!thread.is_full && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onJoin(thread.id);
+                  }}
+                >
+                  Join
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{thread.title}</DialogTitle>
+          <DialogDescription>
+            You need to join this group to be able to see inside of it.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users size={16} />
+            <span>{thread.member_count}/{thread.member_max} members</span>
           </div>
           {!thread.is_full && (
             <Button
-              size="sm"
-              variant="outline"
               onClick={() => {
                 onJoin(thread.id);
               }}
             >
-              Join
+              Join Group
             </Button>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
