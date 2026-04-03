@@ -30,14 +30,11 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
         ...validatedThread.data,
         created_by: userId,
         is_full: false,
-        member_count: 1
     }
 
-    const {data: threadData, error } = await client
+    const { error } = await client
         .from('topic_threads')
         .insert(body)
-        .select('*')
-        .single()
 
     if (error) {
         return {
