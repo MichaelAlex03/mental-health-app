@@ -24,14 +24,14 @@ interface ThreadClientProps {
 
 const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
     return (
-        <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
+        <div className="mx-auto w-full space-y-4 px-4 py-6">
             {/* Back link */}
             <Link
-                href="/protected/my-threads"
+                href="/protected/joined-threads"
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
             >
                 <ArrowLeft size={16} />
-                Back to My Threads
+                Back to Joined Threads
             </Link>
 
             {/* Thread card */}

@@ -25,7 +25,7 @@ interface ThreadClientProps {
 
 const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
     return (
-        <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
+        <div className="mx-auto space-y-4 px-4 py-6">
             {/* Back link */}
             <Link
                 href="/protected/my-threads"
