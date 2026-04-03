@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Category } from "@/app/schemas/categories";
 import { useState } from "react";
-import { createTopicThreadSchema } from "@/app/schemas/post";
+import { createTopicThreadSchema } from "@/app/schemas/thread";
 import { createTopicThread } from "../actions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { useRouter } from "next/navigation";

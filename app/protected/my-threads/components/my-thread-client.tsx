@@ -1,7 +1,7 @@
 'use client'
 
 import { Category } from '@/app/schemas/categories'
-import { ServerThreadTopic } from '@/app/schemas/post'
+import { ServerThreadTopic } from '@/app/schemas/thread'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ThreadCard from './thread-card'
 import { Card, CardContent } from '@/components/ui/card'

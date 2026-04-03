@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Users,
 } from "lucide-react";
-import { ServerThreadTopic } from "@/app/schemas/post";
+import { ServerThreadTopic } from "@/app/schemas/thread";
 import { Category } from "@/app/schemas/categories";
 import { CreateThreadDialog } from "./create-thread-dialog";
 import { Button } from "@/components/ui/button";

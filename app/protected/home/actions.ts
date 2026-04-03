@@ -1,6 +1,6 @@
 'use server'
 
-import { CreateThreadTopicInput, createTopicThreadSchema } from "@/app/schemas/post";
+import { CreateThreadTopicInput, createTopicThreadSchema } from "@/app/schemas/thread";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -33,9 +33,11 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
         member_count: 1
     }
 
-    const { error } = await client
+    const {data: threadData, error } = await client
         .from('topic_threads')
         .insert(body)
+        .select('*')
+        .single()
 
     if (error) {
         return {
@@ -43,6 +45,7 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
             error: 'Could not create new thread'
         }
     }
+
 
     revalidatePath('/protected/home')
     revalidatePath('/protected/my-threads')

@@ -53,3 +53,6 @@ export const serverTopicThreadSchema = z.object({
 
 export type CreateThreadTopicInput = z.infer<typeof createTopicThreadSchema>;
 export type ServerThreadTopic = z.infer<typeof serverTopicThreadSchema>
+export type ServerThreadTopicWithCategory = ServerThreadTopic & {
+  categories: { category_name: string }
+}

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { serverTopicThreadSchema } from "./post";
+import { serverTopicThreadSchema } from "./thread";
 
 export const joinedThreadSchema = z.object({
   id: z.number(),
