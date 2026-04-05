@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { threadReplySchema } from "./thread-replies";
 
 // Schema for client creating posts
 export const createTopicThreadSchema = z.object({
@@ -51,8 +52,23 @@ export const serverTopicThreadSchema = z.object({
   created_at: z.iso.datetime({ offset: true })
 })
 
+export const threadMemberSchema = z.object({
+  avatar_url: z.string().nullable(),
+  display_name: z.string(),
+});
+
+export const threadDetailsSchema = z.object({
+  thread: serverTopicThreadSchema.extend({
+    category_name: z.string(),
+  }),
+  members: z.array(threadMemberSchema),
+  replies: z.array(threadReplySchema),
+});
+
 export type CreateThreadTopicInput = z.infer<typeof createTopicThreadSchema>;
 export type ServerThreadTopic = z.infer<typeof serverTopicThreadSchema>
 export type ServerThreadTopicWithCategory = ServerThreadTopic & {
-  categories: { category_name: string }
+  category_name: string
 }
+export type ThreadMember = z.infer<typeof threadMemberSchema>;
+export type ThreadDetails = z.infer<typeof threadDetailsSchema>;

@@ -38,7 +38,7 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
             <Card>
                 <CardContent className="flex flex-col gap-3 p-6">
                     <Badge variant="secondary" className="w-fit text-xs uppercase tracking-wide">
-                        {thread.categories.category_name}
+                        {thread.category_name}
                     </Badge>
 
                     <h1 className="text-xl font-bold leading-tight text-card-foreground">

@@ -269,7 +269,7 @@ export type Database = {
           display_name: string
           first_name: string | null
           first_time: boolean
-          is_profile_public: boolean | null
+          is_profile_public: boolean
           last_name: string | null
           user_id: string
         }
@@ -280,7 +280,7 @@ export type Database = {
           display_name: string
           first_name?: string | null
           first_time: boolean
-          is_profile_public?: boolean | null
+          is_profile_public?: boolean
           last_name?: string | null
           user_id: string
         }
@@ -291,7 +291,7 @@ export type Database = {
           display_name?: string
           first_name?: string | null
           first_time?: boolean
-          is_profile_public?: boolean | null
+          is_profile_public?: boolean
           last_name?: string | null
           user_id?: string
         }
@@ -344,6 +344,7 @@ export type Database = {
           recipient_user_id: string
         }[]
       }
+      get_thread_details: { Args: { thread_id_input: number }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

@@ -9,8 +9,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, MessageCircle, Users } from 'lucide-react'
 import Link from 'next/link'
-import React from 'react'
 import ReplyItem from './reply-item'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { getReplies } from '../actions'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -24,6 +25,47 @@ interface ThreadClientProps {
 }
 
 const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
+
+    const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
+
+    const [cursor, setCursor] = useState<number | null>(null);
+    const isFetchingRef = useRef(false);
+    const sentinalRef = useRef<HTMLDivElement>(null)
+    const [errors, setErrors] = useState<string>('');
+
+    const handleReply = async () => {
+
+    }
+
+
+    const loadMore = useCallback(async () => {
+        if (isFetchingRef.current || cursor === null) return;
+
+        isFetchingRef.current = true
+
+        try {
+            const { data, nextCursor } = await getReplies(thread.id, cursor)
+            setCursor(nextCursor)
+            setThreadReplies(prev => [...prev, ...data])
+        } catch (error) {
+            setErrors(error as string)
+        } finally {
+            isFetchingRef.current = false
+        }
+
+    }, [cursor, thread.id])
+
+    useEffect(() => {
+        if (!sentinalRef.current) return
+        const observer = new IntersectionObserver(
+            (entries) => { if (entries[0].isIntersecting) loadMore() },
+            { threshold: 0.1 }
+        )
+        observer.observe(sentinalRef.current);
+        return () => observer.disconnect()
+    }, [loadMore])
+
+
     return (
         <div className="mx-auto space-y-4 px-4 py-6">
             {/* Back link */}
@@ -39,7 +81,7 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
             <Card>
                 <CardContent className="flex flex-col gap-3 p-6">
                     <Badge variant="secondary" className="w-fit text-xs uppercase tracking-wide">
-                        {thread.categories.category_name}
+                        {thread.category_name}
                     </Badge>
 
                     <h1 className="text-xl font-bold leading-tight text-card-foreground">

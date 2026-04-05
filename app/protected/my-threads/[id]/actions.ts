@@ -1,67 +1,39 @@
-import { createClient } from "@/lib/supabase/server"
-import { threadDetailsSchema } from "@/app/schemas/thread"
+'use server'
+
+import { createClient } from "@/lib/supabase/server";
 import type { CreateReplyInput } from "@/app/schemas/thread-replies";
 import { insertThreadReplySchema } from "@/app/schemas/thread-replies";
 
-export const getJoinedThreads = async (page: number) => {
-
+// Used for getting parent replies not sub replies
+export const getReplies = async (threadId: number, cursor: number) => {
     const client = await createClient();
-    const { data: { user } } = await client.auth.getUser()
+    const { data: { user } } = await client.auth.getUser();
+    const limit = 20
 
     if (!user || !user.id) {
         throw new Error('User does not exist')
     }
 
-    const userId = user.id
-
-    const limit = 20;
-    const offset = (page * limit)
-
     const { data, error } = await client
-        .from('user_to_topics')
-        .select('*, topic_threads!inner(*)')
-        .eq('user_id', userId)
-        .range(offset, offset + limit + 1)
+        .from('thread_replies')
+        .select('*')
+        .eq('thread_id', threadId)
+        .is('parent_comment_id', null)
+        .lt('id', cursor)
+        .order('id', { ascending: false })
+        .limit(limit + 1)
+
 
     if (error) {
         throw error
     }
 
     const hasMore = data.length > limit
-    const joinedThreads = hasMore ? data.slice(0, -1) : data
 
     return {
-        joinedThreads,
-        nextPage: hasMore ? page + 1 : null
+        data: hasMore ? data.slice(0, -1) : data,
+        nextCursor: hasMore ? data[data.length - 1].id : null
     }
-
-}
-
-export const getThread = async (threadId: string) => {
-    const client = await createClient();
-    const { data: { user } } = await client.auth.getUser();
-
-    if (!user || !user.id) {
-        throw new Error('User does not exist')
-    }
-
-    const id = Number(threadId)
-
-    const { data, error } = await client.rpc('get_thread_details', {
-        thread_id_input: id
-    })
-
-    if (error) {
-        throw error
-    }
-
-    const parsed = threadDetailsSchema.safeParse(data)
-
-    if (!parsed.success) {
-        throw new Error('Invalid thread data')
-    }
-
-    return parsed.data
 }
 
 export const createReply = async (reply: CreateReplyInput) => {
