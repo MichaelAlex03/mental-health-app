@@ -10,7 +10,7 @@ const ThreadCard = ({
     thread: ServerThreadTopic;
 }) => {
     return (
-        <Link href={`/protected/my-threads/${thread.id}`}>
+        <Link href={`/protected/thread/${thread.id}`}>
             <Card className="hover:border-primary transition-colors cursor-pointer mt-4">
                 <CardContent className="flex flex-col gap-2.5 p-5">
                     {/* Title + body */}

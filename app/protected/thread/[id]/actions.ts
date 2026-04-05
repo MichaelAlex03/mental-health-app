@@ -3,15 +3,17 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CreateReplyInput } from "@/app/schemas/thread-replies";
 import { insertThreadReplySchema } from "@/app/schemas/thread-replies";
+import { redirect } from "next/navigation";
+import { threadDetailsSchema } from "@/app/schemas/thread";
 
-// Used for getting parent replies not sub replies
+// Used for getting parent replies via cursor pagination not sub replies
 export const getReplies = async (threadId: number, cursor: number) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
     const limit = 20
 
     if (!user || !user.id) {
-        throw new Error('User does not exist')
+        redirect('/auth/login')
     }
 
     const { data, error } = await client
@@ -41,7 +43,7 @@ export const createReply = async (reply: CreateReplyInput) => {
     const { data: { user } } = await client.auth.getUser();
 
     if (!user || !user.id) {
-        throw new Error('User does not exist')
+        redirect('/auth/login')
     }
 
     const newReply = { ...reply, user_id: user.id }
@@ -50,23 +52,58 @@ export const createReply = async (reply: CreateReplyInput) => {
     if (!parsed.success) {
         return {
             success: false,
+            data: null,
             error: 'Invalid reply data'
         }
     }
 
-    const { error } = await client
+    const { data, error } = await client
         .from('thread_replies')
         .insert(parsed.data)
+        .select('*')
+        .single()
+
+    console.log("T", data)
+    console.log(error)
 
     if (error){
         return {
             success: false,
+            data: null,
             error: 'Cannot create reply'
         }
     }
 
     return {
         success: true,
+        data,
         error: ''
     }
+}
+
+export const getThread = async (threadId: string) => {
+    const client = await createClient();
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        throw new Error('User does not exist')
+    }
+
+    const id = Number(threadId)
+
+    const { data, error } = await client.rpc('get_thread_details', {
+        thread_id_input: id
+    })
+
+    if (error) {
+        throw error
+    }
+
+    const parsed = threadDetailsSchema.safeParse(data)
+
+    if (!parsed.success) {
+        throw new Error('Invalid thread data')
+    }
+
+    return parsed.data
 }

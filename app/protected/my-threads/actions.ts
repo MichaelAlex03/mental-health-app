@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server";
-import { threadDetailsSchema } from "@/app/schemas/thread";
 
 export const getThreads = async (cursor: number | null) => {
     const client = await createClient();
@@ -36,31 +35,4 @@ export const getThreads = async (cursor: number | null) => {
         data: hasMore ? data.slice(0, -1) : data,
         nextCursor: hasMore ? data[data.length - 1].id : null
     }
-}
-
-export const getThread = async (threadId: string) => {
-    const client = await createClient();
-    const { data: { user } } = await client.auth.getUser();
-
-    if (!user || !user.id) {
-        throw new Error('User does not exist')
-    }
-
-    const id = Number(threadId)
-
-    const { data, error } = await client.rpc('get_thread_details', {
-        thread_id_input: id
-    })
-
-    if (error) {
-        throw error
-    }
-
-    const parsed = threadDetailsSchema.safeParse(data)
-
-    if (!parsed.success) {
-        throw new Error('Invalid thread data')
-    }
-
-    return parsed.data
 }

@@ -1,5 +1,4 @@
-import React from 'react'
-import { getThread } from '../actions'
+import { getThread } from './actions'
 import ThreadClient from './components/thread-client'
 
 const ThreadPage = async ({ params }: { params: Promise<{ id: string }> }) => {

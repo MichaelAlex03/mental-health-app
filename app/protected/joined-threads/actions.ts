@@ -1,7 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { threadDetailsSchema } from "@/app/schemas/thread"
-import type { CreateReplyInput } from "@/app/schemas/thread-replies";
-import { insertThreadReplySchema } from "@/app/schemas/thread-replies";
 
 export const getJoinedThreads = async (page: number) => {
 
@@ -35,66 +32,4 @@ export const getJoinedThreads = async (page: number) => {
         nextPage: hasMore ? page + 1 : null
     }
 
-}
-
-export const getThread = async (threadId: string) => {
-    const client = await createClient();
-    const { data: { user } } = await client.auth.getUser();
-
-    if (!user || !user.id) {
-        throw new Error('User does not exist')
-    }
-
-    const id = Number(threadId)
-
-    const { data, error } = await client.rpc('get_thread_details', {
-        thread_id_input: id
-    })
-
-    if (error) {
-        throw error
-    }
-
-    const parsed = threadDetailsSchema.safeParse(data)
-
-    if (!parsed.success) {
-        throw new Error('Invalid thread data')
-    }
-
-    return parsed.data
-}
-
-export const createReply = async (reply: CreateReplyInput) => {
-    const client = await createClient();
-    const { data: { user } } = await client.auth.getUser();
-
-    if (!user || !user.id) {
-        throw new Error('User does not exist')
-    }
-
-    const newReply = { ...reply, user_id: user.id }
-    const parsed = insertThreadReplySchema.safeParse(newReply)
-
-    if (!parsed.success) {
-        return {
-            success: false,
-            error: 'Invalid reply data'
-        }
-    }
-
-    const { error } = await client
-        .from('thread_replies')
-        .insert(parsed.data)
-
-    if (error){
-        return {
-            success: false,
-            error: 'Cannot create reply'
-        }
-    }
-
-    return {
-        success: true,
-        error: ''
-    }
 }
