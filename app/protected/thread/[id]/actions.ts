@@ -38,6 +38,7 @@ export const getReplies = async (threadId: number, cursor: number) => {
     }
 }
 
+//This function is for top level replies
 export const createReply = async (reply: CreateReplyInput) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
@@ -52,34 +53,79 @@ export const createReply = async (reply: CreateReplyInput) => {
     if (!parsed.success) {
         return {
             success: false,
-            data: null,
             error: 'Invalid reply data'
         }
     }
 
-    const { data, error } = await client
+    const { error } = await client
         .from('thread_replies')
         .insert(parsed.data)
-        .select('*')
-        .single()
 
-    console.log("T", data)
-    console.log(error)
 
-    if (error){
+    if (error) {
         return {
             success: false,
-            data: null,
             error: 'Cannot create reply'
         }
     }
 
     return {
         success: true,
-        data,
         error: ''
     }
 }
+
+// This function is used for any sub replies (depth 1-3)
+export const createSubReply = async (reply: CreateReplyInput) => {
+    const client = await createClient();
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const newReply = { ...reply, user_id: user.id }
+    const parsed = insertThreadReplySchema.safeParse(newReply)
+
+    if (!parsed.success) {
+        return {
+            success: false,
+            error: 'Invalid reply data'
+        }
+    }
+
+    const { error } = await client
+        .from('thread_replies')
+        .insert(parsed.data)
+
+
+    if (error) {
+        return {
+            success: false,
+            error: 'Cannot create reply'
+        }
+    }
+
+    return {
+        success: true,
+        error: ''
+    }
+}
+
+export const handleFetchSubReplies = async (parent_comment_id: number, threadId: number) => {
+    const client = await createClient();
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const { data, error } = await client
+        .from('thread_replies')
+        .select('*')
+        
+}
+
 
 export const getThread = async (threadId: string) => {
     const client = await createClient();

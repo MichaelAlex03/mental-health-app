@@ -34,11 +34,13 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
     const sentinalRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>('');
 
+    // Used for top level replies
     const handleReply = async () => {
         let reply: CreateReplyInput = {
             thread_id: thread.id,
             content: replyContent,
-            parent_comment_id: null
+            parent_comment_id: null,
+            depth: 0
         }
 
         try {
@@ -48,11 +50,6 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
                 return
             }
 
-            //add the reply to the beginning of the replies list
-            if (createReplyResponse.data) {
-                setThreadReplies(prev => [createReplyResponse.data, ...prev])
-                setReplyContent("")
-            }
 
 
         } catch (error) {

@@ -8,6 +8,8 @@ export const threadReplySchema = z.object({
   parent_comment_id: z.number().nullable(),
   content: z.string().nullable(),
   is_deleted: z.boolean(),
+  depth: z.number(),
+  reply_count: z.number()
 });
 
 export type ThreadReply = z.infer<typeof threadReplySchema>;
@@ -17,6 +19,7 @@ export const insertThreadReplySchema = z.object({
   user_id: z.uuidv4(),
   parent_comment_id: z.number().nullable(),
   content: z.string().min(1).max(2000),
+  depth: z.number(),
 });
 
 export type InsertThreadReply = z.infer<typeof insertThreadReplySchema>;
@@ -25,6 +28,7 @@ export const createReplyInputSchema = z.object({
   thread_id: z.number(),
   content: z.string().min(1).max(2000),
   parent_comment_id: z.number().nullable(),
+  depth: z.number()
 });
 
 export type CreateReplyInput = z.infer<typeof createReplyInputSchema>;

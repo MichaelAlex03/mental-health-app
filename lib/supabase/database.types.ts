@@ -176,27 +176,33 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          depth: number
           id: number
           is_deleted: boolean
           parent_comment_id: number | null
+          reply_count: number
           thread_id: number
           user_id: string | null
         }
         Insert: {
           content?: string | null
           created_at?: string
+          depth?: number
           id?: number
           is_deleted?: boolean
           parent_comment_id?: number | null
+          reply_count?: number
           thread_id: number
           user_id?: string | null
         }
         Update: {
           content?: string | null
           created_at?: string
+          depth?: number
           id?: number
           is_deleted?: boolean
           parent_comment_id?: number | null
+          reply_count?: number
           thread_id?: number
           user_id?: string | null
         }
