@@ -351,6 +351,22 @@ export type Database = {
         }[]
       }
       get_thread_details: { Args: { thread_id_input: number }; Returns: Json }
+      get_thread_replies: {
+        Args: { p_cursor: number; p_limit: number; p_thread_id: number }
+        Returns: {
+          avatar_url: string
+          content: string
+          created_at: string
+          depth: number
+          display_name: string
+          id: number
+          is_deleted: boolean
+          parent_comment_id: number
+          reply_count: number
+          thread_id: number
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

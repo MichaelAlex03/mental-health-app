@@ -23,13 +23,14 @@ interface ThreadClientProps {
     thread: ServerThreadTopicWithCategory
     members: ThreadMember[] | null
     replies: ThreadReply[]
+    nextCursor: number
 }
 
-const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
+const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProps) => {
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
     const [replyContent, setReplyContent] = useState<string>("");
-    const [cursor, setCursor] = useState<number | null>(replies[replies.length - 1].id);
+    const [cursor, setCursor] = useState<number>(nextCursor);
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>('');
@@ -63,7 +64,7 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
 
 
     const loadMore = useCallback(async () => {
-        if (isFetchingRef.current || cursor === null) return;
+        if (isFetchingRef.current || cursor === -1) return;
 
         isFetchingRef.current = true
 
@@ -88,6 +89,8 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
         observer.observe(sentinalRef.current);
         return () => observer.disconnect()
     }, [loadMore])
+
+    console.log(cursor)
 
 
     return (

@@ -62,7 +62,6 @@ export const threadDetailsSchema = z.object({
     category_name: z.string(),
   }),
   members: z.array(threadMemberSchema),
-  replies: z.array(threadReplySchema),
 });
 
 export type CreateThreadTopicInput = z.infer<typeof createTopicThreadSchema>;
