@@ -9,7 +9,9 @@ export const threadReplySchema = z.object({
   content: z.string().nullable(),
   is_deleted: z.boolean(),
   depth: z.number(),
-  reply_count: z.number()
+  reply_count: z.number(),
+  display_name: z.string(),
+  avatar_url: z.string()
 });
 
 export type ThreadReply = z.infer<typeof threadReplySchema>;
@@ -32,3 +34,4 @@ export const createReplyInputSchema = z.object({
 });
 
 export type CreateReplyInput = z.infer<typeof createReplyInputSchema>;
+

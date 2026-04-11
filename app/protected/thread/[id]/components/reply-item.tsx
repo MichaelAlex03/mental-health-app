@@ -81,7 +81,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-card-foreground">
-                        Anonymous
+                        {reply.display_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {new Date(reply.created_at).toLocaleDateString()}
