@@ -367,6 +367,27 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_thread_sub_replies: {
+        Args: {
+          p_cursor: number
+          p_limit: number
+          p_parent_comment_id: number
+          p_thread_id: number
+        }
+        Returns: {
+          avatar_url: string
+          content: string
+          created_at: string
+          depth: number
+          display_name: string
+          id: number
+          is_deleted: boolean
+          parent_comment_id: number
+          reply_count: number
+          thread_id: number
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

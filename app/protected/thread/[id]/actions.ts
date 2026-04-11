@@ -15,7 +15,7 @@ export const getReplies = async (threadId: number, cursor: number) => {
     if (!user || !user.id) {
         redirect('/auth/login')
     }
-    
+
 
     const { data, error } = await client.rpc('get_thread_replies', {
         p_thread_id: threadId,
@@ -110,18 +110,40 @@ export const createSubReply = async (reply: CreateReplyInput) => {
     }
 }
 
-export const handleFetchSubReplies = async (parent_comment_id: number, threadId: number) => {
+export const handleFetchSubReplies = async (parent_comment_id: number, threadId: number, cursor: number) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
 
+    const limit = 20
     if (!user || !user.id) {
         redirect('/auth/login')
     }
 
-    const { data, error } = await client
-        .from('thread_replies')
-        .select('*')
-        
+    const { data, error } = await client.rpc('get_thread_sub_replies', {
+        p_thread_id: threadId,
+        p_cursor: cursor,
+        p_limit: limit,
+        p_parent_comment_id: parent_comment_id
+    })
+
+    if (error){
+        return {
+            success: false,
+            data: null,
+            error: 'Could not fetch replies',
+            nextCursor: cursor
+        }
+    }
+
+    const hasMore = data.length > limit
+
+    return {
+        success: true,
+        data: hasMore ? data.slice(0, -1) : data,
+        nextCursor: hasMore ? data[data.length - 2].id : -1,
+        error: ''
+    }
+
 }
 
 

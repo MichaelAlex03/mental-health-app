@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { MessageCircle } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { useState } from 'react'
-import { createSubReply } from '../actions'
+import { createSubReply, handleFetchSubReplies } from '../actions'
 
 interface ReplyItemProps {
     reply: ThreadReply
@@ -20,6 +20,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
     const [subReplies, setSubReplies] = useState<ThreadReply[]>([])
     const [collapsed, setCollapsed] = useState(false);
     const [errors, setErrors] = useState<string>("");
+    const [cursor, setCursor] = useState<number>(-1);
 
     const handleSubreply = async (parent_comment_id: number, depth: number) => {
         let subReply: CreateReplyInput = {
@@ -32,7 +33,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
         try {
 
             const createSubReplyResponse = await createSubReply(subReply);
-             if (!createSubReplyResponse.success) {
+            if (!createSubReplyResponse.success) {
                 setErrors(createSubReplyResponse.error)
                 return
             }
@@ -44,6 +45,26 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             setErrors("Unhandled Error")
         }
 
+    }
+
+    const getSubReplies = async () => {
+        try {
+            const fetchSubRepliesResponse = await handleFetchSubReplies(reply.id, reply.thread_id, cursor)
+            if (!fetchSubRepliesResponse.success){
+                setErrors(fetchSubRepliesResponse.error)
+                return
+            }
+
+            if (fetchSubRepliesResponse.data){
+                setSubReplies((prev) => [...prev, ...fetchSubRepliesResponse.data])
+                setCursor(fetchSubRepliesResponse.nextCursor)
+            }
+        } catch (error) {
+            if (isRedirectError(error)) {
+                throw error
+            }
+            setErrors("Unhandled Error")
+        }
     }
 
     if (reply.is_deleted) {
@@ -127,11 +148,15 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                     {/* Nested replies would go here */}
                     {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
                         <div className='mt-2'>
-                            <Button size={'sm'}>
+                            <Button size={'sm'} onClick={getSubReplies} >
                                 View more replies
                             </Button>
                         </div>
                     )}
+
+                    {subReplies.length > 0 && subReplies.map((reply, i) => (
+                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} />
+                    ))}
                 </div>
 
             </div>
