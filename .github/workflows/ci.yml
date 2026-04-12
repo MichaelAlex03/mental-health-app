@@ -14,10 +14,14 @@ jobs:
                 node-version: 20
                 cache: 'npm'
 
-            - run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-            - run: npm run lint
+            - name: Lint
+              run: npm run lint
 
-            - run: npm run type-check
+            - name: Type check
+              run: npm run type-check
 
-            - run: npm run build
+            - name: Build
+              run: npm run build
