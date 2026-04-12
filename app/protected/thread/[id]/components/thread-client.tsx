@@ -94,59 +94,64 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
     }, [loadMore])
 
     useEffect(() => {
-            const channel = supabase
-                .channel(`thread-${thread.id}`)
-                .on(
-                    'postgres_changes',
-                    {
-                        event: 'INSERT',
-                        schema: 'public',
-                        table: 'thread_replies',
-                        filter: `thread_id=eq.${thread.id}`
-                    },
-                    async (payload) => {
-                        const reply = payload.new as ThreadReply
+        const channel = supabase
+            .channel(`thread-${thread.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'thread_replies',
+                    filter: `thread_id=eq.${thread.id}`
+                },
+                async (payload) => {
+                    const reply = payload.new as ThreadReplies
 
-                        // This websocket connection only handles top level replies
-                        if (reply.parent_comment_id !== null){
-                            return
-                        }
 
-                        const { data, error } = await supabase.rpc('get_user_profile', {
-                            p_user_id: payload.new.user_id
-                        })
+                    const { data, error } = await supabase.rpc('get_user_profile', {
+                        p_user_id: reply.user_id
+                    })
 
-                        if (error){
-                            setErrors('Could not recieve message')
-                            return;
-                        }
+                    if (error) {
+                        setErrors('Could not recieve message')
+                        return;
+                    }
 
-                        const threadReply: ThreadReply = {
-                            ...payload.new as ThreadReplies,
-                            avatar_url: data.avatar_url as string | null,
-                            display_name: data.display_name as string 
-                        }
+                    const threadReply: ThreadReply = {
+                        ...reply as ThreadReplies,
+                        avatar_url: data.avatar_url as string | null,
+                        display_name: data.display_name as string
+                    }
 
+                    // This websocket connection only handles top level replies
+                    if (reply.parent_comment_id === null) {
                         setThreadReplies((prev: ThreadReply[]) => [threadReply, ...prev])
                     }
-                )
-                .on(
-                    'postgres_changes',
-                    {
-                        event: "UPDATE",
-                        schema: "public",
-                        table: "thread_replies",
-                        filter: `thread_id=eq.${thread.id}`
-                    },
-                    (payload) => {
-                        
-                    }
-                )
-                .subscribe()
-            return () => {
-                supabase.removeChannel(channel)
-            }
-        }, [])
+
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "thread_replies",
+                    filter: `thread_id=eq.${thread.id}`
+                },
+                (payload) => {
+                    const reply = payload.new as ThreadReplies
+
+                    // Update reply count for top level replies
+                    setThreadReplies(prev => prev.map((r) => (
+                        r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
+                    )))
+                }
+            )
+            .subscribe()
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [])
 
 
 
@@ -241,7 +246,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                 </div>
             )}
 
-             <div ref={sentinalRef} style={{ height: 1 }} />
+            <div ref={sentinalRef} style={{ height: 1 }} />
         </div>
     )
 }
