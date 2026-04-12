@@ -2,7 +2,7 @@
 
 import { GetConversationsType, MessageType } from '@/app/schemas/messages'
 import { useEffect, useState } from 'react'
-import { createConversastion, getConversations } from '../conversation_actions'
+import { createConversastion } from '../conversation_actions'
 import { MessageCircle, Plus, Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ interface MessagesClientProps {
   currentUserId: string
 }
 
-// **** NEED TO ADD **** when user gets message from recipient that convo moves to the top
 const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) => {
 
   const router = useRouter();
@@ -67,7 +66,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
       c.recipient_display_name.toLowerCase().includes(searchData.toLowerCase())
     )
     setFilteredConversations(filtered);
-  }, [searchData])
+  }, [searchData, conversations])
 
   // Used for syncing client state conversations with server conversations
   useEffect(() => {
@@ -101,7 +100,7 @@ const MessagesClient = ({ conversations, currentUserId }: MessagesClientProps) =
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [currentUserId])
+  }, [currentUserId, router])
 
   return (
     <div className="flex h-[calc(100vh-104px)] rounded-xl border border-border bg-card overflow-hidden">

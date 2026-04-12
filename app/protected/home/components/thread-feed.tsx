@@ -6,23 +6,6 @@ import { getThreads } from "../actions";
 
 
 
-
-async function fetchThreads(): Promise<ServerThreadTopic[]> {
-
-  const client = await createClient()
-
-  const { data, error } = await client
-    .from('topic_threads')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
-
 async function fetchCategories(): Promise<Category[]> {
   const client = await createClient();
   const { data, error } = await client

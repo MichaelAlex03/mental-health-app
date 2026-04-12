@@ -2,7 +2,7 @@ import { ServerThreadTopic } from '@/app/schemas/thread';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react'
+
 
 const ThreadCard = ({
     thread,

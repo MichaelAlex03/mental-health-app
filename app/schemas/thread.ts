@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { threadReplySchema } from "./thread-replies";
 
 // Schema for client creating posts
 export const createTopicThreadSchema = z.object({

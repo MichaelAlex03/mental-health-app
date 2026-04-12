@@ -48,7 +48,7 @@ export function CreateThreadDialog({
   }
 
   const handleSubmit = async () => {
-    let input = {
+    const input = {
       title,
       content,
       category_id: category,
@@ -58,7 +58,7 @@ export function CreateThreadDialog({
     const validatedInput = createTopicThreadSchema.safeParse(input)
 
     if (!validatedInput.success) {
-      let inputErrors: Record<string, string> = {}
+      const inputErrors: Record<string, string> = {}
       for (const error of validatedInput.error.issues) {
         inputErrors[error.path[0] as string] = error.message
       }

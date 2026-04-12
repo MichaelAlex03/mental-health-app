@@ -10,7 +10,7 @@ interface JoinedThreadsProps {
     nextPage: number | null
 }
 
-const JoinedThreadsClient = ({ joinedThreads, nextPage }: JoinedThreadsProps) => {
+const JoinedThreadsClient = ({ joinedThreads }: JoinedThreadsProps) => {
     return (
         <div>
             {joinedThreads.length === 0 && (

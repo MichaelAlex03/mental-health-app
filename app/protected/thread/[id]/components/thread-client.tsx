@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, MessageCircle, Users } from 'lucide-react'
+import { AlertCircle, ArrowLeft, MessageCircle, Users } from 'lucide-react'
 import Link from 'next/link'
 import ReplyItem from './reply-item'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -37,7 +37,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
 
     // Used for top level replies
     const handleReply = async () => {
-        let reply: CreateReplyInput = {
+        const reply: CreateReplyInput = {
             thread_id: thread.id,
             content: replyContent,
             parent_comment_id: null,
@@ -150,7 +150,21 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
             {/* Comment input */}
             <Card>
                 <CardContent className="p-4">
-                    <Textarea value={replyContent} onChange={(e) => setReplyContent(e.target.value)} placeholder="Share your thoughts..." className="mb-3" />
+                    <Textarea
+                        value={replyContent}
+                        onChange={(e) => {
+                            setReplyContent(e.target.value)
+                            if (errors) setErrors("")
+                        }}
+                        placeholder="Share your thoughts..."
+                        className="mb-3"
+                    />
+                    {errors && (
+                        <div className="flex items-center gap-1.5 text-destructive text-xs mb-3">
+                            <AlertCircle size={14} className="shrink-0" />
+                            <span>{errors}</span>
+                        </div>
+                    )}
                     <div className="flex justify-end">
                         <Button onClick={handleReply} size="sm">Reply</Button>
                     </div>

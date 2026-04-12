@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import React, { Suspense } from 'react'
+import React from 'react'
 import MyThreadFeed from './components/my-threads';
 
 const QUICK_TOOLS = [
@@ -11,16 +10,13 @@ const QUICK_TOOLS = [
     { label: "Find a therapist", href: "#" },
 ];
 
-interface Props {
-    searchParams: Promise<{ category?: string }>
-}
 
-const MyThreadsPage = ({ searchParams }: Props) => {
+const MyThreadsPage = () => {
     return (
         <div className="flex gap-6 w-full">
             {/* ── Main feed ── */}
             <main className="flex-1 min-w-0 flex flex-col gap-4">
-                <MyThreadFeed searchParams={searchParams} />
+                <MyThreadFeed />
             </main>
 
             {/* ── Right sidebar ── */}

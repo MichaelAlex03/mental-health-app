@@ -8,9 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Settings, LogOut } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Sidebar } from "./sidebar";
-import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "@/components/logout-button";
 
 export default async function ProtectedLayout({

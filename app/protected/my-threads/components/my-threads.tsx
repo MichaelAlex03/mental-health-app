@@ -1,11 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import React from 'react'
 import MyThreadsClient from './my-thread-client';
 import { getThreads } from '../actions';
 
-interface Props {
-  searchParams: Promise<{ category?: string }>
-}
 
 const getCategories = async () => {
     const client = await createClient();
@@ -21,7 +17,7 @@ const getCategories = async () => {
     return data
 }
 
-const MyThreadFeed = async ({ searchParams }: Props) => {
+const MyThreadFeed = async () => {
     const [categories] = await Promise.all([
         getCategories()
     ])

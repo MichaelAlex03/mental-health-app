@@ -1,15 +1,7 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThreadFeed } from "./components/thread-feed";
-import { Skeleton } from "@/components/ui/skeleton";
 
-// ── Placeholder types ──────────────────────────────────────────────
-
-interface Space {
-  name: string;
-  color: string;
-}
 
 
 const QUICK_TOOLS = [
