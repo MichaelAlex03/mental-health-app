@@ -1,7 +1,7 @@
 'use client'
 
 import { ServerThreadTopicWithCategory } from '@/app/schemas/thread'
-import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
+import { CreateReplyInput, ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import ReplyItem from './reply-item'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createReply, getReplies } from '../actions'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { createClient } from '@/lib/supabase/client'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -25,6 +26,8 @@ interface ThreadClientProps {
     replies: ThreadReply[]
     nextCursor: number
 }
+
+const supabase = createClient();
 
 const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProps) => {
 
@@ -89,6 +92,61 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
         observer.observe(sentinalRef.current);
         return () => observer.disconnect()
     }, [loadMore])
+
+    useEffect(() => {
+            const channel = supabase
+                .channel(`thread-${thread.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'thread_replies',
+                        filter: `thread_id=eq.${thread.id}`
+                    },
+                    async (payload) => {
+                        const reply = payload.new as ThreadReply
+
+                        // This websocket connection only handles top level replies
+                        if (reply.parent_comment_id !== null){
+                            return
+                        }
+
+                        const { data, error } = await supabase.rpc('get_user_profile', {
+                            p_user_id: payload.new.user_id
+                        })
+
+                        if (error){
+                            setErrors('Could not recieve message')
+                            return;
+                        }
+
+                        const threadReply: ThreadReply = {
+                            ...payload.new as ThreadReplies,
+                            avatar_url: data.avatar_url as string | null,
+                            display_name: data.display_name as string 
+                        }
+
+                        setThreadReplies((prev: ThreadReply[]) => [threadReply, ...prev])
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    {
+                        event: "UPDATE",
+                        schema: "public",
+                        table: "thread_replies",
+                        filter: `thread_id=eq.${thread.id}`
+                    },
+                    (payload) => {
+                        
+                    }
+                )
+                .subscribe()
+            return () => {
+                supabase.removeChannel(channel)
+            }
+        }, [])
 
 
 

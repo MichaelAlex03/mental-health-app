@@ -388,6 +388,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

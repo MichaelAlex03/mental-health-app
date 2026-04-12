@@ -1,18 +1,21 @@
 'use client'
 
-import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
+import { CreateReplyInput, ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, MessageCircle } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createSubReply, handleFetchSubReplies } from '../actions'
+import { createClient } from '@/lib/supabase/client'
 
 interface ReplyItemProps {
     reply: ThreadReply
     depth?: number
 }
+
+const supabase = createClient();
 
 const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
     const [showReplyBox, setShowReplyBox] = useState(false);
@@ -51,12 +54,12 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
         setIsFetchingSubReplies(true)
         try {
             const fetchSubRepliesResponse = await handleFetchSubReplies(reply.id, reply.thread_id, cursor)
-            if (!fetchSubRepliesResponse.success){
+            if (!fetchSubRepliesResponse.success) {
                 setErrors(fetchSubRepliesResponse.error)
                 return
             }
 
-            if (fetchSubRepliesResponse.data){
+            if (fetchSubRepliesResponse.data) {
                 setSubReplies((prev) => [...prev, ...fetchSubRepliesResponse.data])
                 setCursor(fetchSubRepliesResponse.nextCursor)
             }
@@ -69,6 +72,61 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             setIsFetchingSubReplies(false)
         }
     }
+
+    useEffect(() => {
+        const channel = supabase
+            .channel(`thread-${reply.thread_id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'thread_replies',
+                    filter: `thread_id=eq.${reply.thread_id}`
+                },
+                async (payload) => {
+                     const reply = payload.new as ThreadReply
+
+                        // This websocket connection only handles sub replies
+                        if (reply.parent_comment_id === null){
+                            return
+                        }
+
+                    const { data, error } = await supabase.rpc('get_user_profile', {
+                        p_user_id: payload.new.user_id
+                    })
+
+                    if (error) {
+                        setErrors('Could not recieve message')
+                        return;
+                    }
+
+                    const threadReply: ThreadReply = {
+                        ...payload.new as ThreadReplies,
+                        avatar_url: data.avatar_url as string | null,
+                        display_name: data.display_name as string
+                    }
+
+                    setSubReplies((prev: ThreadReply[]) => [threadReply, ...prev])
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "thread_replies",
+                    filter: `thread_id=eq.${reply.thread_id}`
+                },
+                (payload) => {
+
+                }
+            )
+            .subscribe()
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [])
 
     if (reply.is_deleted) {
         return (
