@@ -18,6 +18,7 @@ interface MessageScreenProps {
     onBack?: () => void
 }
 
+const supabase = createClient();
 
 const MessageScreen = ({
     conversationId,
@@ -27,7 +28,7 @@ const MessageScreen = ({
     recipientUserId,
     onBack,
 }: MessageScreenProps) => {
-    const supabase = createClient();
+
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
@@ -110,7 +111,7 @@ const MessageScreen = ({
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [conversationId, supabase])
+    }, [conversationId])
 
 
     // UseEffect for marking messages as read

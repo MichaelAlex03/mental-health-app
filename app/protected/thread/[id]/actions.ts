@@ -114,7 +114,7 @@ export const handleFetchSubReplies = async (parent_comment_id: number, threadId:
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
 
-    const limit = 20
+    const limit = 5
     if (!user || !user.id) {
         redirect('/auth/login')
     }

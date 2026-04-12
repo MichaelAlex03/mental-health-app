@@ -20,6 +20,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
     const [subReplies, setSubReplies] = useState<ThreadReply[]>([])
     const [errors, setErrors] = useState<string>("");
     const [cursor, setCursor] = useState<number>(-1);
+    const [isFetchingSubreplies, setIsFetchingSubReplies] = useState<boolean>(false);
 
     const handleSubreply = async (parent_comment_id: number) => {
         const subReply: CreateReplyInput = {
@@ -47,6 +48,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
     }
 
     const getSubReplies = async () => {
+        setIsFetchingSubReplies(true)
         try {
             const fetchSubRepliesResponse = await handleFetchSubReplies(reply.id, reply.thread_id, cursor)
             if (!fetchSubRepliesResponse.success){
@@ -63,6 +65,8 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                 throw error
             }
             setErrors("Unhandled Error")
+        } finally {
+            setIsFetchingSubReplies(false)
         }
     }
 
@@ -164,7 +168,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                     {/* Nested replies would go here */}
                     {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
                         <div className='mt-2'>
-                            <Button size={'sm'} onClick={getSubReplies} >
+                            <Button size={'sm'} onClick={getSubReplies} disabled={isFetchingSubreplies}>
                                 View more replies
                             </Button>
                         </div>
