@@ -1,4 +1,3 @@
-import { ServerThreadTopic } from "@/app/schemas/thread";
 import { FeedClient } from "./feed-client";
 import { createClient } from "@/lib/supabase/server";
 import { Category } from "@/app/schemas/categories";

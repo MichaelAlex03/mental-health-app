@@ -46,7 +46,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const joinThread = async (threadId: number) => {
     try {
       const joinThreadResponse = await joinThreadTopic(threadId);
-      if (!joinThreadResponse.success){
+      if (!joinThreadResponse.success) {
         setErrors(joinThreadResponse.error)
         return;
       }
@@ -96,17 +96,16 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     router.push(`/protected/home${categoryId ? `?category=${categoryId}` : ''}`)
   }
 
-  const createCategoriesMap = () => {
-    const map: Record<string, number | undefined> = { "All": undefined }
-    for (const category of categories) {
-      map[category.category_name] = category.id
-    }
-    setCategoryList(map)
-  }
-
   useEffect(() => {
+    const createCategoriesMap = () => {
+      const map: Record<string, number | undefined> = { "All": undefined }
+      for (const category of categories) {
+        map[category.category_name] = category.id
+      }
+      setCategoryList(map)
+    }
     createCategoriesMap()
-  }, [createCategoriesMap])
+  }, [categories])
 
 
   return (
