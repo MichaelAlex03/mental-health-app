@@ -90,7 +90,6 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
         return () => observer.disconnect()
     }, [loadMore])
 
-    console.log(cursor)
 
 
     return (
