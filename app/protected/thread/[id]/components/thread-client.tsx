@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, MessageCircle, Users } from 'lucide-react'
+import { AlertCircle, ArrowLeft, MessageCircle, Users } from 'lucide-react'
 import Link from 'next/link'
 import ReplyItem from './reply-item'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -23,20 +23,21 @@ interface ThreadClientProps {
     thread: ServerThreadTopicWithCategory
     members: ThreadMember[] | null
     replies: ThreadReply[]
+    nextCursor: number
 }
 
-const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
+const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProps) => {
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
     const [replyContent, setReplyContent] = useState<string>("");
-    const [cursor, setCursor] = useState<number | null>(replies[replies.length - 1].id);
+    const [cursor, setCursor] = useState<number>(nextCursor);
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>('');
 
     // Used for top level replies
     const handleReply = async () => {
-        let reply: CreateReplyInput = {
+        const reply: CreateReplyInput = {
             thread_id: thread.id,
             content: replyContent,
             parent_comment_id: null,
@@ -63,7 +64,7 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
 
 
     const loadMore = useCallback(async () => {
-        if (isFetchingRef.current || cursor === null) return;
+        if (isFetchingRef.current || cursor === -1) return;
 
         isFetchingRef.current = true
 
@@ -88,6 +89,7 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
         observer.observe(sentinalRef.current);
         return () => observer.disconnect()
     }, [loadMore])
+
 
 
     return (
@@ -148,7 +150,21 @@ const ThreadClient = ({ thread, members, replies }: ThreadClientProps) => {
             {/* Comment input */}
             <Card>
                 <CardContent className="p-4">
-                    <Textarea value={replyContent} onChange={(e) => setReplyContent(e.target.value)} placeholder="Share your thoughts..." className="mb-3" />
+                    <Textarea
+                        value={replyContent}
+                        onChange={(e) => {
+                            setReplyContent(e.target.value)
+                            if (errors) setErrors("")
+                        }}
+                        placeholder="Share your thoughts..."
+                        className="mb-3"
+                    />
+                    {errors && (
+                        <div className="flex items-center gap-1.5 text-destructive text-xs mb-3">
+                            <AlertCircle size={14} className="shrink-0" />
+                            <span>{errors}</span>
+                        </div>
+                    )}
                     <div className="flex justify-end">
                         <Button onClick={handleReply} size="sm">Reply</Button>
                     </div>

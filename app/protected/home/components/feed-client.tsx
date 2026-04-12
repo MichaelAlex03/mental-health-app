@@ -12,8 +12,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertCircle,
   MessageCircle,
   Users,
+  X,
 } from "lucide-react";
 import { ServerThreadTopic } from "@/app/schemas/thread";
 import { Category } from "@/app/schemas/categories";
@@ -44,7 +46,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const joinThread = async (threadId: number) => {
     try {
       const joinThreadResponse = await joinThreadTopic(threadId);
-      if (!joinThreadResponse.success){
+      if (!joinThreadResponse.success) {
         setErrors(joinThreadResponse.error)
         return;
       }
@@ -94,17 +96,16 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     router.push(`/protected/home${categoryId ? `?category=${categoryId}` : ''}`)
   }
 
-  const createCategoriesMap = () => {
-    let map: Record<string, number | undefined> = { "All": undefined }
-    for (const category of categories) {
-      map[category.category_name] = category.id
-    }
-    setCategoryList(map)
-  }
-
   useEffect(() => {
+    const createCategoriesMap = () => {
+      const map: Record<string, number | undefined> = { "All": undefined }
+      for (const category of categories) {
+        map[category.category_name] = category.id
+      }
+      setCategoryList(map)
+    }
     createCategoriesMap()
-  }, [])
+  }, [categories])
 
 
   return (
@@ -127,6 +128,20 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
           </div>
         </CardContent>
       </Card>
+
+      {/* Error banner */}
+      {errors && (
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <AlertCircle size={16} className="shrink-0" />
+          <p className="flex-1">{errors}</p>
+          <button
+            onClick={() => setErrors("")}
+            className="shrink-0 rounded-md p-0.5 hover:bg-destructive/20 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Feed filters */}
       <div className="flex gap-2">

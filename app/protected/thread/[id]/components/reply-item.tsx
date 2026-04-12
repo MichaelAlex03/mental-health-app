@@ -4,10 +4,10 @@ import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { MessageCircle } from 'lucide-react'
+import { AlertCircle, MessageCircle } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { useState } from 'react'
-import { createSubReply } from '../actions'
+import { createSubReply, handleFetchSubReplies } from '../actions'
 
 interface ReplyItemProps {
     reply: ThreadReply
@@ -18,11 +18,12 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
     const [showReplyBox, setShowReplyBox] = useState(false);
     const [replyContent, setReplyContent] = useState<string>("");
     const [subReplies, setSubReplies] = useState<ThreadReply[]>([])
-    const [collapsed, setCollapsed] = useState(false);
     const [errors, setErrors] = useState<string>("");
+    const [cursor, setCursor] = useState<number>(-1);
+    const [isFetchingSubreplies, setIsFetchingSubReplies] = useState<boolean>(false);
 
-    const handleSubreply = async (parent_comment_id: number, depth: number) => {
-        let subReply: CreateReplyInput = {
+    const handleSubreply = async (parent_comment_id: number) => {
+        const subReply: CreateReplyInput = {
             thread_id: reply.thread_id,
             content: replyContent,
             parent_comment_id,
@@ -32,7 +33,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
         try {
 
             const createSubReplyResponse = await createSubReply(subReply);
-             if (!createSubReplyResponse.success) {
+            if (!createSubReplyResponse.success) {
                 setErrors(createSubReplyResponse.error)
                 return
             }
@@ -44,6 +45,29 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             setErrors("Unhandled Error")
         }
 
+    }
+
+    const getSubReplies = async () => {
+        setIsFetchingSubReplies(true)
+        try {
+            const fetchSubRepliesResponse = await handleFetchSubReplies(reply.id, reply.thread_id, cursor)
+            if (!fetchSubRepliesResponse.success){
+                setErrors(fetchSubRepliesResponse.error)
+                return
+            }
+
+            if (fetchSubRepliesResponse.data){
+                setSubReplies((prev) => [...prev, ...fetchSubRepliesResponse.data])
+                setCursor(fetchSubRepliesResponse.nextCursor)
+            }
+        } catch (error) {
+            if (isRedirectError(error)) {
+                throw error
+            }
+            setErrors("Unhandled Error")
+        } finally {
+            setIsFetchingSubReplies(false)
+        }
     }
 
     if (reply.is_deleted) {
@@ -81,7 +105,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-card-foreground">
-                        Anonymous
+                        {reply.display_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {new Date(reply.created_at).toLocaleDateString()}
@@ -111,10 +135,19 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                                 placeholder="Write a reply..."
                                 className="text-sm min-h-12"
                                 value={replyContent}
-                                onChange={(e) => setReplyContent(e.target.value)}
+                                onChange={(e) => {
+                                    setReplyContent(e.target.value)
+                                    if (errors) setErrors("")
+                                }}
                             />
+                            {errors && (
+                                <div className="flex items-center gap-1.5 text-destructive text-xs">
+                                    <AlertCircle size={14} className="shrink-0" />
+                                    <span>{errors}</span>
+                                </div>
+                            )}
                             <div className='flex items-center gap-2'>
-                                <Button size="sm" className="self-end shrink-0" onClick={() => handleSubreply(reply.id, reply.depth)}>
+                                <Button size="sm" className="self-end shrink-0" onClick={() => handleSubreply(reply.id)}>
                                     Reply
                                 </Button>
                                 <Button size="sm" className="self-end shrink-0" onClick={() => setShowReplyBox(false)}>
@@ -124,14 +157,26 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                         </div>
                     )}
 
+                    {/* Show error when reply box is closed (e.g. from fetching sub-replies) */}
+                    {errors && !showReplyBox && (
+                        <div className="flex items-center gap-1.5 text-destructive text-xs mt-2">
+                            <AlertCircle size={14} className="shrink-0" />
+                            <span>{errors}</span>
+                        </div>
+                    )}
+
                     {/* Nested replies would go here */}
                     {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
                         <div className='mt-2'>
-                            <Button size={'sm'}>
+                            <Button size={'sm'} onClick={getSubReplies} disabled={isFetchingSubreplies}>
                                 View more replies
                             </Button>
                         </div>
                     )}
+
+                    {subReplies.length > 0 && subReplies.map((reply) => (
+                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} />
+                    ))}
                 </div>
 
             </div>

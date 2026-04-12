@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Send } from 'lucide-react'
 import { MessageType, SendMessageType } from '@/app/schemas/messages'
+import Image from 'next/image'
 
 interface MessageScreenProps {
     conversationId: number
@@ -17,13 +18,7 @@ interface MessageScreenProps {
     onBack?: () => void
 }
 
-// Figure out how we are going to mark messages as read
-
-// Steps for real time read updates
-/**
- * 1. When you click on convo, send an update for all messages that have not be read to "read"
- * 2. Add listener for update events and update all the messages 
- */
+const supabase = createClient();
 
 const MessageScreen = ({
     conversationId,
@@ -33,7 +28,7 @@ const MessageScreen = ({
     recipientUserId,
     onBack,
 }: MessageScreenProps) => {
-    const supabase = createClient();
+
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [cursor, setCursor] = useState<number | null>(null);
@@ -107,7 +102,7 @@ const MessageScreen = ({
                 },
                 (payload) => {
                     const message = payload.new as MessageType
-                    setMessages(prev => prev.map((m, i) => (
+                    setMessages(prev => prev.map((m) => (
                         m.id === message.id ? { ...m, viewed: true, viewed_at: message.viewed_at } : m
                     )))
                 }
@@ -117,8 +112,6 @@ const MessageScreen = ({
             supabase.removeChannel(channel)
         }
     }, [conversationId])
-
-    console.log("TEST", conversationId)
 
 
     // UseEffect for marking messages as read
@@ -138,7 +131,7 @@ const MessageScreen = ({
 
     const handleSend = async () => {
         if (!messageInput.trim()) return
-        let body: SendMessageType = {
+        const body: SendMessageType = {
             content: messageInput,
             recipient_id: recipientUserId,
             sender_id: currentUserId,
@@ -186,7 +179,7 @@ const MessageScreen = ({
                 )}
                 <div className="relative size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                     {recipientAvatarUrl ? (
-                        <img
+                        <Image
                             src={recipientAvatarUrl}
                             alt={`${recipientName}'s avatar`}
                             className="size-full object-cover"

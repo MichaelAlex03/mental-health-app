@@ -15,7 +15,7 @@ const JoinedThreadCard = ({
     })
 
     return (
-        <Link href={`/protected/thread/${joinedThread.id}`}>
+        <Link href={`/protected/thread/${joinedThread.topic_id}`}>
             <Card className="hover:border-primary transition-colors cursor-pointer mt-4">
                 <CardContent className="flex flex-col gap-2.5 p-5">
                     <h3 className="text-base font-semibold text-card-foreground leading-snug">

@@ -1,27 +1,9 @@
-import { ServerThreadTopic } from "@/app/schemas/thread";
 import { FeedClient } from "./feed-client";
 import { createClient } from "@/lib/supabase/server";
 import { Category } from "@/app/schemas/categories";
 import { getThreads } from "../actions";
 
 
-
-
-async function fetchThreads(): Promise<ServerThreadTopic[]> {
-
-  const client = await createClient()
-
-  const { data, error } = await client
-    .from('topic_threads')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw error
-  }
-
-  return data
-}
 
 async function fetchCategories(): Promise<Category[]> {
   const client = await createClient();

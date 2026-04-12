@@ -3,7 +3,6 @@
 import { getConversationsSchema } from "@/app/schemas/messages";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { success } from "zod";
 
 /** For this server action we throw since we are calling from a server component
  *  so if it cant fetch the conversations we want the error page to show up

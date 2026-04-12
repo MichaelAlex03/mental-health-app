@@ -16,14 +16,12 @@ export const getReplies = async (threadId: number, cursor: number) => {
         redirect('/auth/login')
     }
 
-    const { data, error } = await client
-        .from('thread_replies')
-        .select('*')
-        .eq('thread_id', threadId)
-        .is('parent_comment_id', null)
-        .lt('id', cursor)
-        .order('id', { ascending: false })
-        .limit(limit + 1)
+
+    const { data, error } = await client.rpc('get_thread_replies', {
+        p_thread_id: threadId,
+        p_cursor: cursor,
+        p_limit: limit
+    })
 
 
     if (error) {
@@ -34,7 +32,7 @@ export const getReplies = async (threadId: number, cursor: number) => {
 
     return {
         data: hasMore ? data.slice(0, -1) : data,
-        nextCursor: hasMore ? data[data.length - 1].id : null
+        nextCursor: hasMore ? data[data.length - 2].id : -1
     }
 }
 
@@ -112,22 +110,44 @@ export const createSubReply = async (reply: CreateReplyInput) => {
     }
 }
 
-export const handleFetchSubReplies = async (parent_comment_id: number, threadId: number) => {
+export const handleFetchSubReplies = async (parent_comment_id: number, threadId: number, cursor: number) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
 
+    const limit = 5
     if (!user || !user.id) {
         redirect('/auth/login')
     }
 
-    const { data, error } = await client
-        .from('thread_replies')
-        .select('*')
-        
+    const { data, error } = await client.rpc('get_thread_sub_replies', {
+        p_thread_id: threadId,
+        p_cursor: cursor,
+        p_limit: limit,
+        p_parent_comment_id: parent_comment_id
+    })
+
+    if (error){
+        return {
+            success: false,
+            data: null,
+            error: 'Could not fetch replies',
+            nextCursor: cursor
+        }
+    }
+
+    const hasMore = data.length > limit
+
+    return {
+        success: true,
+        data: hasMore ? data.slice(0, -1) : data,
+        nextCursor: hasMore ? data[data.length - 2].id : -1,
+        error: ''
+    }
+
 }
 
 
-export const getThread = async (threadId: string) => {
+export const getThread = async (threadId: number) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
 
@@ -135,10 +155,9 @@ export const getThread = async (threadId: string) => {
         throw new Error('User does not exist')
     }
 
-    const id = Number(threadId)
 
     const { data, error } = await client.rpc('get_thread_details', {
-        thread_id_input: id
+        thread_id_input: threadId
     })
 
     if (error) {

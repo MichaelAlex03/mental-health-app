@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,9 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Settings, LogOut } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Sidebar } from "./sidebar";
-import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "@/components/logout-button";
 
 export default async function ProtectedLayout({
@@ -63,7 +63,9 @@ export default async function ProtectedLayout({
 
       {/* Page content */}
       <div className="flex flex-1 px-6 py-6 gap-6">
-        <Sidebar/>
+        <Suspense>
+          <Sidebar/>
+        </Suspense>
         <div className="flex-1 min-w-0">{children}</div>
       </div>
     </div>

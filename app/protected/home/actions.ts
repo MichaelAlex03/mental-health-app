@@ -26,7 +26,7 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
         }
     }
 
-    let body = {
+    const body = {
         ...validatedThread.data,
         created_by: userId,
         is_full: false,
