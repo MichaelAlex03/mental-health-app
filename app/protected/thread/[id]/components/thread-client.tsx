@@ -54,6 +54,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                 return
             }
 
+            setReplyContent("")
 
 
         } catch (error) {
@@ -62,7 +63,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
             }
 
             setErrors("Unhandled Error")
-        }
+        } 
     }
 
 
