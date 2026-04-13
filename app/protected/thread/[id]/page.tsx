@@ -1,5 +1,8 @@
 import { getReplies, getThread } from './actions'
 import ThreadClient from './components/thread-client'
+import { RealtimeProvider } from './components/thread-realtime-context'
+
+
 
 const ThreadPage = async ({ params }: { params: Promise<{ id: string }> }) => {
 
@@ -13,12 +16,14 @@ const ThreadPage = async ({ params }: { params: Promise<{ id: string }> }) => {
     ])
 
     return (
-        <ThreadClient
-            thread={threadData.thread}
-            members={threadData.members}
-            replies={threadReplies.data}
-            nextCursor={threadReplies.nextCursor}
-        />
+        <RealtimeProvider>
+            <ThreadClient
+                thread={threadData.thread}
+                members={threadData.members}
+                replies={threadReplies.data}
+                nextCursor={threadReplies.nextCursor}
+            />
+        </RealtimeProvider>
     )
 }
 

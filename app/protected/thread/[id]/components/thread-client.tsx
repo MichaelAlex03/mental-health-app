@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createReply, getReplies } from '../actions'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { createClient } from '@/lib/supabase/client'
+import { useRealtimePublish } from './thread-realtime-context'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -30,6 +31,8 @@ interface ThreadClientProps {
 const supabase = createClient();
 
 const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProps) => {
+
+    const publish = useRealtimePublish()
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
     const [replyContent, setReplyContent] = useState<string>("");
@@ -63,7 +66,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
             }
 
             setErrors("Unhandled Error")
-        } 
+        }
     }
 
 
@@ -143,9 +146,14 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     const reply = payload.new as ThreadReplies
 
                     // Update reply count for top level replies
-                    setThreadReplies(prev => prev.map((r) => (
-                        r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
-                    )))
+                    if (reply.parent_comment_id === null) {
+                        setThreadReplies(prev => prev.map((r) => (
+                            r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
+                        )))
+                    } else {
+                        publish({ type: 'UPDATE', reply})
+                    }
+
                 }
             )
             .subscribe()
