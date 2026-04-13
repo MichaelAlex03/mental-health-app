@@ -1,10 +1,9 @@
 'use client'
 
-import { ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
+import { ThreadReplies } from '@/app/schemas/thread-replies'
 import { createContext, useCallback, useContext, useEffect, useRef } from 'react'
 
-export type RealtimeEvent = { type: 'INSERT'; reply: ThreadReply }
-    | { type: 'UPDATE'; reply: ThreadReplies }
+export type RealtimeEvent = { type: 'INSERT'; reply: ThreadReplies } | { type: 'UPDATE'; reply: ThreadReplies }
 
 type Callback = (event: RealtimeEvent) => void
 

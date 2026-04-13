@@ -35,11 +35,16 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
     const publish = useRealtimePublish()
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
+    const [activeReplyBox, setActiveReplyBox] = useState<number>(0)
     const [replyContent, setReplyContent] = useState<string>("");
     const [cursor, setCursor] = useState<number>(nextCursor);
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>('');
+
+    const handleToggleReplyBox = (replyId: number) => {
+        setActiveReplyBox(replyId)
+    }
 
     // Used for top level replies
     const handleReply = async () => {
@@ -132,6 +137,8 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         setThreadReplies((prev: ThreadReply[]) => [threadReply, ...prev])
                     }
 
+                   
+
                 }
             )
             .on(
@@ -151,7 +158,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                             r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
                         )))
                     } else {
-                        publish({ type: 'UPDATE', reply})
+                        publish({ type: 'UPDATE', reply })
                     }
 
                 }
@@ -250,7 +257,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         {threadReplies.length} {threadReplies.length === 1 ? 'Reply' : 'Replies'}
                     </h2>
                     {threadReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} />
+                        <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox}/>
                     ))}
                 </div>
             )}

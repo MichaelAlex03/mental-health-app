@@ -87,25 +87,45 @@ export const createSubReply = async (reply: CreateReplyInput) => {
 
     if (!parsed.success) {
         return {
-            success: false,
+            success: false as const,
+            data: null,
             error: 'Invalid reply data'
         }
     }
 
-    const { error } = await client
+    const { data: subReply, error } = await client
         .from('thread_replies')
         .insert(parsed.data)
+        .select('*')
+        .single()
+
 
 
     if (error) {
         return {
-            success: false,
+            success: false as const,
+            data: null,
+            error: 'Cannot create reply'
+        }
+    }
+
+    const { data: userData, error: userError } = await client
+        .from('user_profile')
+        .select('display_name, avatar_url')
+        .eq('user_id', subReply.user_id)
+        .single()
+
+    if (userError) {
+        return {
+            success: false as const,
+            data: null,
             error: 'Cannot create reply'
         }
     }
 
     return {
-        success: true,
+        success: true as const,
+        data: { ...subReply, ...userData },
         error: ''
     }
 }
@@ -126,7 +146,7 @@ export const handleFetchSubReplies = async (parent_comment_id: number, threadId:
         p_parent_comment_id: parent_comment_id
     })
 
-    if (error){
+    if (error) {
         return {
             success: false,
             data: null,
