@@ -15,6 +15,7 @@ import { createReply, getReplies } from '../actions'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtimePublish } from './thread-realtime-context'
+import { Member } from '@/app/schemas/members'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -23,7 +24,7 @@ export interface ThreadMember {
 
 interface ThreadClientProps {
     thread: ServerThreadTopicWithCategory
-    members: ThreadMember[] | null
+    members: ThreadMember[]
     replies: ThreadReply[]
     nextCursor: number
 }
@@ -35,7 +36,8 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
     const publish = useRealtimePublish()
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
-    const [activeReplyBox, setActiveReplyBox] = useState<number>(0)
+    const [activeReplyBox, setActiveReplyBox] = useState<number>(0);
+    const [threadMembers, setThreadMembers] = useState<ThreadMember[]>(members)
     const [replyContent, setReplyContent] = useState<string>("");
     const [cursor, setCursor] = useState<number>(nextCursor);
     const isFetchingRef = useRef(false);
@@ -160,6 +162,23 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
 
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'user_to_topics',
+                    filter: `topic_id=eq.${thread.id}`
+                },
+                async (payload) => {
+                    const newMember = payload.new as Member
+
+                    const { data, error } = await supabase.rpc('get_user_profile', {
+                        p_user_id: newMember.user_id
+                    })
+                    setThreadMembers(prev => [...prev, ...data])
+                }
+            )
             .subscribe()
         return () => {
             supabase.removeChannel(channel)
@@ -254,7 +273,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         {threadReplies.length} {threadReplies.length === 1 ? 'Reply' : 'Replies'}
                     </h2>
                     {threadReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox}/>
+                        <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox} />
                     ))}
                 </div>
             )}
