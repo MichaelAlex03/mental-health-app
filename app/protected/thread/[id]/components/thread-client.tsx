@@ -1,7 +1,7 @@
 'use client'
 
 import { ServerThreadTopicWithCategory } from '@/app/schemas/thread'
-import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
+import { CreateReplyInput, ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import ReplyItem from './reply-item'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createReply, getReplies } from '../actions'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { createClient } from '@/lib/supabase/client'
+import { useRealtimePublish } from './thread-realtime-context'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -26,14 +28,23 @@ interface ThreadClientProps {
     nextCursor: number
 }
 
+const supabase = createClient();
+
 const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProps) => {
 
+    const publish = useRealtimePublish()
+
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
+    const [activeReplyBox, setActiveReplyBox] = useState<number>(0)
     const [replyContent, setReplyContent] = useState<string>("");
     const [cursor, setCursor] = useState<number>(nextCursor);
     const isFetchingRef = useRef(false);
     const sentinalRef = useRef<HTMLDivElement>(null)
     const [errors, setErrors] = useState<string>('');
+
+    const handleToggleReplyBox = (replyId: number) => {
+        setActiveReplyBox(replyId)
+    }
 
     // Used for top level replies
     const handleReply = async () => {
@@ -51,6 +62,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                 return
             }
 
+            setReplyContent("")
 
 
         } catch (error) {
@@ -89,6 +101,70 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
         observer.observe(sentinalRef.current);
         return () => observer.disconnect()
     }, [loadMore])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel(`thread-${thread.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'thread_replies',
+                    filter: `thread_id=eq.${thread.id}`
+                },
+                async (payload) => {
+                    const reply = payload.new as ThreadReplies
+
+
+                    const { data, error } = await supabase.rpc('get_user_profile', {
+                        p_user_id: reply.user_id
+                    })
+
+                    if (error) {
+                        setErrors('Could not recieve message')
+                        return;
+                    }
+
+                    const threadReply: ThreadReply = {
+                        ...reply as ThreadReplies,
+                        avatar_url: data.avatar_url as string | null,
+                        display_name: data.display_name as string
+                    }
+
+                    // This websocket connection only handles top level replies
+                    if (reply.parent_comment_id === null) {
+                        setThreadReplies((prev: ThreadReply[]) => [threadReply, ...prev])
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "thread_replies",
+                    filter: `thread_id=eq.${thread.id}`
+                },
+                (payload) => {
+                    const reply = payload.new as ThreadReplies
+
+                    // Update reply count for top level replies
+                    if (reply.parent_comment_id === null) {
+                        setThreadReplies(prev => prev.map((r) => (
+                            r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
+                        )))
+                    } else {
+                        publish({ type: 'UPDATE', reply })
+                    }
+
+                }
+            )
+            .subscribe()
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [thread.id, publish])
 
 
 
@@ -178,12 +254,12 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         {threadReplies.length} {threadReplies.length === 1 ? 'Reply' : 'Replies'}
                     </h2>
                     {threadReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} />
+                        <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox}/>
                     ))}
                 </div>
             )}
 
-             <div ref={sentinalRef} style={{ height: 1 }} />
+            <div ref={sentinalRef} style={{ height: 1 }} />
         </div>
     )
 }

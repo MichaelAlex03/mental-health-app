@@ -174,7 +174,7 @@ export type Database = {
       }
       thread_replies: {
         Row: {
-          content: string | null
+          content: string
           created_at: string
           depth: number
           id: number
@@ -182,10 +182,10 @@ export type Database = {
           parent_comment_id: number | null
           reply_count: number
           thread_id: number
-          user_id: string | null
+          user_id: string
         }
         Insert: {
-          content?: string | null
+          content: string
           created_at?: string
           depth?: number
           id?: number
@@ -193,10 +193,10 @@ export type Database = {
           parent_comment_id?: number | null
           reply_count?: number
           thread_id: number
-          user_id?: string | null
+          user_id: string
         }
         Update: {
-          content?: string | null
+          content?: string
           created_at?: string
           depth?: number
           id?: number
@@ -204,7 +204,7 @@ export type Database = {
           parent_comment_id?: number | null
           reply_count?: number
           thread_id?: number
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -386,6 +386,13 @@ export type Database = {
           reply_count: number
           thread_id: number
           user_id: string
+        }[]
+      }
+      get_user_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
         }[]
       }
     }

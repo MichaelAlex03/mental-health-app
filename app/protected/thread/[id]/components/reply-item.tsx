@@ -6,21 +6,45 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, MessageCircle } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { createSubReply, handleFetchSubReplies } from '../actions'
+import { useRealtimeSubscription } from './thread-realtime-context'
 
 interface ReplyItemProps {
     reply: ThreadReply
     depth?: number
+    showActiveReplyBox: number
+    toggleReplyBox: (val: number) => void
 }
 
-const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
-    const [showReplyBox, setShowReplyBox] = useState(false);
+
+const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: ReplyItemProps) => {
+
     const [replyContent, setReplyContent] = useState<string>("");
     const [subReplies, setSubReplies] = useState<ThreadReply[]>([])
     const [errors, setErrors] = useState<string>("");
     const [cursor, setCursor] = useState<number>(-1);
     const [isFetchingSubreplies, setIsFetchingSubReplies] = useState<boolean>(false);
+
+    useRealtimeSubscription(useCallback((event) => {
+
+        if (event.type === "INSERT" && event.reply.parent_comment_id === reply.id) {
+            const newReply: ThreadReply = {
+                ...event.reply,
+                avatar_url: '',
+                display_name: 'default'
+            }
+            setSubReplies(prev => [...prev, newReply])
+        }
+
+        if (event.type === 'UPDATE') {
+            // Update reply_count for any of my loaded sub-replies
+            setSubReplies(prev => prev.map(r =>
+                r.id === event.reply.id ? { ...r, reply_count: event.reply.reply_count } : r
+            ))
+        }
+    }, [reply.id]))
+
 
     const handleSubreply = async (parent_comment_id: number) => {
         const subReply: CreateReplyInput = {
@@ -38,6 +62,13 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                 return
             }
 
+            if (createSubReplyResponse.data) {
+                setSubReplies(prev => [createSubReplyResponse.data, ...prev])
+            }
+            setReplyContent("")
+            toggleReplyBox(0)
+
+
         } catch (error) {
             if (isRedirectError(error)) {
                 throw error
@@ -51,13 +82,16 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
         setIsFetchingSubReplies(true)
         try {
             const fetchSubRepliesResponse = await handleFetchSubReplies(reply.id, reply.thread_id, cursor)
-            if (!fetchSubRepliesResponse.success){
+            if (!fetchSubRepliesResponse.success) {
                 setErrors(fetchSubRepliesResponse.error)
                 return
             }
 
-            if (fetchSubRepliesResponse.data){
-                setSubReplies((prev) => [...prev, ...fetchSubRepliesResponse.data])
+            if (fetchSubRepliesResponse.data) {
+                setSubReplies((prev) => {
+                    const existingIds = new Set(prev.map(r => r.id))
+                    return [...prev, ...fetchSubRepliesResponse.data.filter(r => !existingIds.has(r.id))]
+                })
                 setCursor(fetchSubRepliesResponse.nextCursor)
             }
         } catch (error) {
@@ -69,6 +103,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
             setIsFetchingSubReplies(false)
         }
     }
+
 
     if (reply.is_deleted) {
         return (
@@ -120,7 +155,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
 
                     <div className="flex items-center gap-3 mt-1.5">
                         <button
-                            onClick={() => setShowReplyBox(!showReplyBox)}
+                            onClick={() => toggleReplyBox(reply.id)}
                             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                         >
                             <MessageCircle size={14} />
@@ -129,7 +164,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                     </div>
 
                     {/* Inline reply box */}
-                    {showReplyBox && (
+                    {showActiveReplyBox === reply.id && (
                         <div className="mt-3 flex gap-2 flex-col">
                             <Textarea
                                 placeholder="Write a reply..."
@@ -150,7 +185,7 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                                 <Button size="sm" className="self-end shrink-0" onClick={() => handleSubreply(reply.id)}>
                                     Reply
                                 </Button>
-                                <Button size="sm" className="self-end shrink-0" onClick={() => setShowReplyBox(false)}>
+                                <Button size="sm" className="self-end shrink-0" onClick={() => toggleReplyBox(0)}>
                                     Cancel
                                 </Button>
                             </div>
@@ -158,12 +193,17 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                     )}
 
                     {/* Show error when reply box is closed (e.g. from fetching sub-replies) */}
-                    {errors && !showReplyBox && (
+                    {errors && !showActiveReplyBox && (
                         <div className="flex items-center gap-1.5 text-destructive text-xs mt-2">
                             <AlertCircle size={14} className="shrink-0" />
                             <span>{errors}</span>
                         </div>
                     )}
+
+
+                    {subReplies.length > 0 && subReplies.map((reply) => (
+                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} showActiveReplyBox={showActiveReplyBox} toggleReplyBox={toggleReplyBox}/>
+                    ))}
 
                     {/* Nested replies would go here */}
                     {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
@@ -173,10 +213,6 @@ const ReplyItem = ({ reply, depth = 0 }: ReplyItemProps) => {
                             </Button>
                         </div>
                     )}
-
-                    {subReplies.length > 0 && subReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} />
-                    ))}
                 </div>
 
             </div>
