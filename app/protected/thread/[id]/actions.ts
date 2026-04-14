@@ -166,7 +166,6 @@ export const handleFetchSubReplies = async (parent_comment_id: number, threadId:
 
 }
 
-
 export const getThread = async (threadId: number) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();

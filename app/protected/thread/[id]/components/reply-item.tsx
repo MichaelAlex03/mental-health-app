@@ -28,15 +28,6 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
     useRealtimeSubscription(useCallback((event) => {
 
-        if (event.type === "INSERT" && event.reply.parent_comment_id === reply.id) {
-            const newReply: ThreadReply = {
-                ...event.reply,
-                avatar_url: '',
-                display_name: 'default'
-            }
-            setSubReplies(prev => [...prev, newReply])
-        }
-
         if (event.type === 'UPDATE') {
             // Update reply_count for any of my loaded sub-replies
             setSubReplies(prev => prev.map(r =>
