@@ -154,7 +154,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     // Update reply count for top level replies
                     if (reply.parent_comment_id === null) {
                         setThreadReplies(prev => prev.map((r) => (
-                            r.id === reply.id ? { ...r, reply_count: reply.reply_count } : r
+                            r.id === reply.id ? { ...r, reply_count: reply.reply_count, is_deleted: reply.is_deleted } : r
                         )))
                     } else {
                         publish({ type: 'UPDATE', reply })
@@ -185,26 +185,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     setThreadMembers(prev => [...prev, ...data])
                 }
             )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'DELETE',
-                    schema: 'public',
-                    table: 'thread_replies',
-                    filter: `topic_id=eq.${thread.id}`
-                },
-                async (payload) => {
-                    const reply = payload.new as ThreadReplies
 
-                    if (reply.parent_comment_id === null) {
-                        setThreadReplies(prev => prev.map(r =>
-                            r.id === reply.id ? { ...r, is_deleted: reply.is_deleted } : r
-                        ))
-                    } else {
-                        publish({ type: 'DELETE', reply })
-                    }
-                }
-            )
             .subscribe()
         return () => {
             supabase.removeChannel(channel)
@@ -298,9 +279,14 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1 mb-3">
                         {threadReplies.length} {threadReplies.length === 1 ? 'Reply' : 'Replies'}
                     </h2>
-                    {threadReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox} />
-                    ))}
+                    {threadReplies.map((reply) => {
+                        if (reply.is_deleted && reply.reply_count === 0) {
+                            return
+                        }
+                        return (
+                            <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox} />
+                        )
+                    })}
                 </div>
             )}
 

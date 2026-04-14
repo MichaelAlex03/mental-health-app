@@ -4,11 +4,12 @@ import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { AlertCircle, MessageCircle } from 'lucide-react'
+import { AlertCircle, MessageCircle, Trash2 } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { useCallback, useState } from 'react'
-import { createSubReply, handleFetchSubReplies } from '../actions'
+import { createSubReply, deleteReply, handleFetchSubReplies } from '../actions'
 import { useRealtimeSubscription } from './thread-realtime-context'
+
 
 interface ReplyItemProps {
     reply: ThreadReply
@@ -28,16 +29,12 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
     useRealtimeSubscription(useCallback((event) => {
 
-        if (event.type === 'DELETE') {
-            setSubReplies(prev => prev.map(r =>
-                r.id === event.reply.id ? { ...r, is_deleted: event.reply.is_deleted } : r
-            ))
-        }
-
         if (event.type === 'UPDATE') {
             // Update reply_count for any of my loaded sub-replies
             setSubReplies(prev => prev.map(r =>
-                r.id === event.reply.id ? { ...r, reply_count: event.reply.reply_count } : r
+                r.id === event.reply.id
+                    ? { ...r, reply_count: event.reply.reply_count, is_deleted: event.reply.is_deleted }
+                    : r
             ))
         }
     }, [reply.id]))
@@ -121,6 +118,8 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                     <span className="text-xs text-muted-foreground">
                         {new Date(reply.created_at).toLocaleDateString()}
                     </span>
+
+
                 </div>
 
 
@@ -137,6 +136,20 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                             <MessageCircle size={14} />
                             Reply
                         </button>
+                        {!reply.is_deleted && (
+                            <button
+                                onClick={async () => {
+                                    const result = await deleteReply(reply.id)
+                                    if (!result.success) {
+                                        setErrors(result.error)
+                                    }
+                                }}
+                                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                                <Trash2 size={14} />
+                                Delete
+                            </button>
+                        )}
                     </div>
 
                     {/* Inline reply box */}
@@ -177,9 +190,20 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                     )}
 
 
-                    {subReplies.length > 0 && subReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} showActiveReplyBox={showActiveReplyBox} toggleReplyBox={toggleReplyBox} />
-                    ))}
+                    {subReplies.length > 0 && subReplies.map((reply) => {
+                        if (reply.is_deleted && reply.reply_count === 0) {
+                            return
+                        }
+                        return (
+                            <ReplyItem
+                                key={reply.id}
+                                reply={reply}
+                                depth={reply.depth}
+                                showActiveReplyBox={showActiveReplyBox}
+                                toggleReplyBox={toggleReplyBox}
+                            />
+                        )
+                    })}
 
                     {/* Nested replies would go here */}
                     {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
