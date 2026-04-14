@@ -176,6 +176,12 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     const { data, error } = await supabase.rpc('get_user_profile', {
                         p_user_id: newMember.user_id
                     })
+
+                    if (error) {
+                        setErrors('Could not get new member info')
+                        return;
+                    }
+
                     setThreadMembers(prev => [...prev, ...data])
                 }
             )
