@@ -136,9 +136,6 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     if (reply.parent_comment_id === null) {
                         setThreadReplies((prev: ThreadReply[]) => [threadReply, ...prev])
                     }
-
-                   
-
                 }
             )
             .on(
@@ -167,7 +164,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [])
+    }, [thread.id, publish])
 
 
 
