@@ -1,6 +1,6 @@
 'use client'
 
-import { CreateReplyInput, ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
+import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -8,7 +8,6 @@ import { AlertCircle, MessageCircle } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { useCallback, useEffect, useState } from 'react'
 import { createSubReply, handleFetchSubReplies } from '../actions'
-import { createClient } from '@/lib/supabase/client'
 import { useRealtimeSubscription } from './thread-realtime-context'
 
 interface ReplyItemProps {
@@ -44,7 +43,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                 r.id === event.reply.id ? { ...r, reply_count: event.reply.reply_count } : r
             ))
         }
-    }, [reply.id, subReplies.length]))
+    }, [reply.id]))
 
 
     const handleSubreply = async (parent_comment_id: number) => {
