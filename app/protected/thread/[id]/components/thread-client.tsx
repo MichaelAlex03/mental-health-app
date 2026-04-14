@@ -185,6 +185,26 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                     setThreadMembers(prev => [...prev, ...data])
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'thread_replies',
+                    filter: `topic_id=eq.${thread.id}`
+                },
+                async (payload) => {
+                    const reply = payload.new as ThreadReplies
+
+                    if (reply.parent_comment_id === null) {
+                        setThreadReplies(prev => prev.map(r =>
+                            r.id === reply.id ? { ...r, is_deleted: reply.is_deleted } : r
+                        ))
+                    } else {
+                        publish({ type: 'DELETE', reply })
+                    }
+                }
+            )
             .subscribe()
         return () => {
             supabase.removeChannel(channel)

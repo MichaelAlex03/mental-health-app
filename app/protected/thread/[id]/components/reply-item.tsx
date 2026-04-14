@@ -28,6 +28,12 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
     useRealtimeSubscription(useCallback((event) => {
 
+        if (event.type === 'DELETE') {
+            setSubReplies(prev => prev.map(r =>
+                r.id === event.reply.id ? { ...r, is_deleted: event.reply.is_deleted } : r
+            ))
+        }
+
         if (event.type === 'UPDATE') {
             // Update reply_count for any of my loaded sub-replies
             setSubReplies(prev => prev.map(r =>
@@ -95,27 +101,6 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
         }
     }
 
-
-    if (reply.is_deleted) {
-        return (
-            <div className="flex gap-3 py-3">
-                <div className="flex flex-col items-center">
-                    <Avatar size="sm">
-                        <AvatarFallback>?</AvatarFallback>
-                    </Avatar>
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground italic">
-                        [deleted]
-                    </p>
-                    <p className="text-sm text-muted-foreground italic mt-1">
-                        [This comment has been removed]
-                    </p>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="flex gap-3 py-3">
             {/* Avatar + thread line */}
@@ -131,7 +116,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-card-foreground">
-                        {reply.display_name}
+                        {reply.is_deleted ? 'deleted' : reply.display_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {new Date(reply.created_at).toLocaleDateString()}
@@ -141,7 +126,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
                 <div>
                     <p className="text-sm text-card-foreground leading-relaxed mt-1 whitespace-pre-wrap">
-                        {reply.content}
+                        {reply.is_deleted ? 'This comment has been removed' : reply.content}
                     </p>
 
                     <div className="flex items-center gap-3 mt-1.5">
@@ -193,7 +178,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
 
                     {subReplies.length > 0 && subReplies.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} showActiveReplyBox={showActiveReplyBox} toggleReplyBox={toggleReplyBox}/>
+                        <ReplyItem key={reply.id} reply={reply} depth={reply.depth} showActiveReplyBox={showActiveReplyBox} toggleReplyBox={toggleReplyBox} />
                     ))}
 
                     {/* Nested replies would go here */}
