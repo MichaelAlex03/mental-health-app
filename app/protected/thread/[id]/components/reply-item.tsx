@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, MessageCircle, Trash2 } from 'lucide-react'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createSubReply, deleteReply, handleFetchSubReplies } from '../actions'
 import { useRealtimeSubscription } from './thread-realtime-context'
 
@@ -22,7 +22,8 @@ interface ReplyItemProps {
 const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: ReplyItemProps) => {
 
     const [replyContent, setReplyContent] = useState<string>("");
-    const [subReplies, setSubReplies] = useState<ThreadReply[]>([])
+    const [subReplies, setSubReplies] = useState<ThreadReply[]>([]);
+    const [parentReply, setParentReply] = useState<ThreadReply>(reply)
     const [errors, setErrors] = useState<string>("");
     const [cursor, setCursor] = useState<number>(-1);
     const [isFetchingSubreplies, setIsFetchingSubReplies] = useState<boolean>(false);
@@ -98,6 +99,10 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
         }
     }
 
+    useEffect(() => {
+        setParentReply(reply)
+    }, [reply])
+
     return (
         <div className="flex gap-3 py-3">
             {/* Avatar + thread line */}
@@ -113,10 +118,10 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-card-foreground">
-                        {reply.is_deleted ? 'deleted' : reply.display_name}
+                        {parentReply.is_deleted ? 'deleted' : parentReply.display_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                        {new Date(reply.created_at).toLocaleDateString()}
+                        {new Date(parentReply.created_at).toLocaleDateString()}
                     </span>
 
 
@@ -125,21 +130,21 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
                 <div>
                     <p className="text-sm text-card-foreground leading-relaxed mt-1 whitespace-pre-wrap">
-                        {reply.is_deleted ? 'This comment has been removed' : reply.content}
+                        {parentReply.is_deleted ? 'This comment has been removed' : parentReply.content}
                     </p>
 
                     <div className="flex items-center gap-3 mt-1.5">
                         <button
-                            onClick={() => toggleReplyBox(reply.id)}
+                            onClick={() => toggleReplyBox(parentReply.id)}
                             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                         >
                             <MessageCircle size={14} />
                             Reply
                         </button>
-                        {!reply.is_deleted && (
+                        {!parentReply.is_deleted && (
                             <button
                                 onClick={async () => {
-                                    const result = await deleteReply(reply.id)
+                                    const result = await deleteReply(parentReply.id)
                                     if (!result.success) {
                                         setErrors(result.error)
                                     }
@@ -153,7 +158,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                     </div>
 
                     {/* Inline reply box */}
-                    {showActiveReplyBox === reply.id && (
+                    {showActiveReplyBox === parentReply.id && (
                         <div className="mt-3 flex gap-2 flex-col">
                             <Textarea
                                 placeholder="Write a reply..."
@@ -171,7 +176,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                                 </div>
                             )}
                             <div className='flex items-center gap-2'>
-                                <Button size="sm" className="self-end shrink-0" onClick={() => handleSubreply(reply.id)}>
+                                <Button size="sm" className="self-end shrink-0" onClick={() => handleSubreply(parentReply.id)}>
                                     Reply
                                 </Button>
                                 <Button size="sm" className="self-end shrink-0" onClick={() => toggleReplyBox(0)}>
@@ -206,7 +211,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
                     })}
 
                     {/* Nested replies would go here */}
-                    {reply.reply_count > 0 && subReplies.length < reply.reply_count && (
+                    {parentReply.reply_count > 0 && subReplies.length < parentReply.reply_count && (
                         <div className='mt-2'>
                             <Button size={'sm'} onClick={getSubReplies} disabled={isFetchingSubreplies}>
                                 View more replies

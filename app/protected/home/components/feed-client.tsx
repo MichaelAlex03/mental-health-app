@@ -107,6 +107,10 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     createCategoriesMap()
   }, [categories])
 
+  useEffect(() => {
+    setThreadList(threads)
+  }, [threads])
+
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use client'
 
-import { ServerThreadTopicWithCategory } from '@/app/schemas/thread'
+import { ServerThreadTopic, ServerThreadTopicWithCategory } from '@/app/schemas/thread'
 import { CreateReplyInput, ThreadReplies, ThreadReply } from '@/app/schemas/thread-replies'
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +36,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
     const publish = useRealtimePublish()
 
     const [threadReplies, setThreadReplies] = useState<ThreadReply[]>(replies);
+    const [currentThread, setCurrentThread] = useState<ServerThreadTopicWithCategory>(thread)
     const [activeReplyBox, setActiveReplyBox] = useState<number>(0);
     const [threadMembers, setThreadMembers] = useState<ThreadMember[]>(members)
     const [replyContent, setReplyContent] = useState<string>("");
@@ -165,6 +166,31 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
             .on(
                 'postgres_changes',
                 {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'topic_threads',
+                    filter: `id=eq.${thread.id}`
+                },
+                async (payload) => {
+                    const updated = payload.new as ServerThreadTopic
+
+                    const { data, error } = await supabase
+                        .from('categories')
+                        .select('category_name')
+                        .eq('id', updated.category_id)
+                        .single()
+
+                    if (error) {
+                        setErrors('Could not fetch category info')
+                        return
+                    }
+
+                    setCurrentThread({ ...updated, category_name: data.category_name })
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'user_to_topics',
@@ -181,7 +207,6 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         setErrors('Could not get new member info')
                         return;
                     }
-
                     setThreadMembers(prev => [...prev, ...data])
                 }
             )
@@ -209,23 +234,23 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
             <Card>
                 <CardContent className="flex flex-col gap-3 p-6">
                     <Badge variant="secondary" className="w-fit text-xs uppercase tracking-wide">
-                        {thread.category_name}
+                        {currentThread.category_name}
                     </Badge>
 
                     <h1 className="text-xl font-bold leading-tight text-card-foreground">
-                        {thread.title}
+                        {currentThread.title}
                     </h1>
 
                     <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                        {thread.content}
+                        {currentThread.content}
                     </p>
 
                     {/* Footer */}
                     <div className="flex items-center justify-between border-t pt-4 mt-1">
                         <div className="flex items-center gap-2">
-                            {members && members.length > 0 && (
+                            {threadMembers && threadMembers.length > 0 && (
                                 <AvatarGroup>
-                                    {members.slice(0, 5).map((member, i) => (
+                                    {threadMembers.slice(0, 5).map((member, i) => (
                                         <Avatar size="sm" key={i}>
                                             {member.avatar_url && <AvatarImage src={member.avatar_url} />}
                                             <AvatarFallback>
@@ -237,13 +262,13 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                             )}
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Users size={14} />
-                                {thread.member_count}/{thread.member_max}
+                                {currentThread.member_count}/{currentThread.member_max}
                             </span>
                         </div>
 
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <MessageCircle size={14} />
-                            {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+                            {threadReplies.length} {threadReplies.length === 1 ? 'reply' : 'replies'}
                         </span>
                     </div>
                 </CardContent>
@@ -284,7 +309,12 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                             return
                         }
                         return (
-                            <ReplyItem key={reply.id} reply={reply} showActiveReplyBox={activeReplyBox} toggleReplyBox={handleToggleReplyBox} />
+                            <ReplyItem
+                                key={reply.id}
+                                reply={reply}
+                                showActiveReplyBox={activeReplyBox}
+                                toggleReplyBox={handleToggleReplyBox}
+                            />
                         )
                     })}
                 </div>
