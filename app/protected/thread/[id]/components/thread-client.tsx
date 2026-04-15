@@ -185,6 +185,7 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         return
                     }
 
+                    console.log("C", updated)
                     setCurrentThread({ ...updated, category_name: data.category_name })
                 }
             )
