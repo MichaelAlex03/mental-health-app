@@ -132,6 +132,8 @@ export const joinThreadTopic = async (threadId: number) => {
 
     const userId = user.id
 
+    // Add a check to double check thread is full because data is not strongly consistent so it can appear as not full when it is
+
     const { error } = await client
         .from('user_to_topics')
         .insert({
@@ -146,6 +148,9 @@ export const joinThreadTopic = async (threadId: number) => {
         }
     }
 
+    revalidatePath('/protected/home')
+    revalidatePath('/protected/joined-threads')
+    
     return {
         success: true,
         error: ""

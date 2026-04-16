@@ -166,6 +166,26 @@ export const handleFetchSubReplies = async (parent_comment_id: number, threadId:
 
 }
 
+export const deleteReply = async (replyId: number) => {
+    const client = await createClient();
+    const { data: { user } } = await client.auth.getUser();
+
+    if (!user || !user.id) {
+        redirect('/auth/login')
+    }
+
+    const { error } = await client
+        .from('thread_replies')
+        .update({ is_deleted: true })
+        .eq('id', replyId)
+        .eq('user_id', user.id)
+
+    if (error) {
+        return { success: false, error: 'Failed to delete reply' }
+    }
+
+    return { success: true, error: '' }
+}
 
 export const getThread = async (threadId: number) => {
     const client = await createClient();
