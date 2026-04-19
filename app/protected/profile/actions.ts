@@ -26,13 +26,17 @@ export const getProfile = async () => {
     return data
 }
 
-export const updateProfile = async (input: UpdateProfileInput) => {
+export const updateProfile = async (formData: FormData) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
 
     if (!user || !user.id) {
         redirect('/auth/login')
     }
+
+    const input = JSON.parse(formData.get("input") as string) as UpdateProfileInput;
+    const newAvatar = formData.get("avatar") as File | null;
+    const filePath = formData.get("filePath") as string | null;
 
     const validated = updateProfileSchema.safeParse(input)
 
@@ -41,6 +45,23 @@ export const updateProfile = async (input: UpdateProfileInput) => {
             success: false,
             error: 'Invalid profile data'
         }
+    }
+
+    if (newAvatar && filePath) {
+        const { error: uploadError } = await client.storage
+            .from('avatar_image')
+            .upload(filePath, newAvatar, { upsert: true });
+
+        if (uploadError) {
+            console.log(uploadError)
+            return { success: false, error: 'Could not upload avatar' };
+        }
+
+        const { data: urlData } = client.storage
+            .from('avatar_image')
+            .getPublicUrl(filePath);
+
+        validated.data.avatar_url = urlData.publicUrl;
     }
 
     const { error } = await client

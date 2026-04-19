@@ -49,8 +49,30 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
   const [bio, setBio] = useState(profile.bio ?? "");
   const [birthday, setBirthday] = useState(profile.birthday_date ?? "");
   const [isPublic, setIsPublic] = useState(profile.is_profile_public);
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? null);
+  const [imagePath, setImagePath] = useState<string>("")
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [errors, setErrors] = useState<string>("")
 
   const initials = getInitials(profile);
+
+  const handleAvatarChange = (file: File | null) => {
+
+    if (!file) return
+
+    const maxAllowedSize = 5 * 1024 * 1024;
+    if (file.size > maxAllowedSize) {
+      setErrors("File is too big. Must be 5MB or smaller")
+      return
+    }
+
+    const ext = file.name.split(".").pop();
+    const path = `${profile.user_id}/${file.name}.${ext}`;
+
+    setImagePath(path)
+    setUploadedFile(file)
+    setAvatarUrl(URL.createObjectURL(file))
+  }
 
   const handleCancel = () => {
     setFirstName(profile.first_name ?? "");
@@ -59,6 +81,9 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
     setBio(profile.bio ?? "");
     setBirthday(profile.birthday_date ?? "");
     setIsPublic(profile.is_profile_public);
+    setAvatarUrl(profile.avatar_url ?? null)
+    setImagePath("")
+    setUploadedFile(null)
     setEditing(false);
   };
 
@@ -72,15 +97,26 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
       bio: bio.trim() || null,
       birthday_date: birthday || null,
       is_profile_public: isPublic,
+      avatar_url: profile.avatar_url || null
     };
 
-    const result = await updateProfile(input);
+    const formData = new FormData();
+    formData.set("input", JSON.stringify(input));
+    if (uploadedFile && imagePath) {
+      formData.set("avatar", uploadedFile);
+      formData.set("filePath", imagePath);
+    }
+
+    const result = await updateProfile(formData);
 
     if (result.success) {
       toast.success("Profile updated");
       setEditing(false);
+      setImagePath("")
+      setUploadedFile(null)
     } else {
       toast.error(result.error ?? "Something went wrong");
+      console.log(result.error)
     }
 
     setSaving(false);
@@ -93,15 +129,25 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
         <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-8">
           <div className="relative group cursor-pointer">
             <Avatar className="h-24 w-24 text-2xl">
-              <AvatarImage src={profile.avatar_url ?? ""} alt="Avatar" />
+              <AvatarImage src={avatarUrl ?? undefined} alt="Avatar" />
               <AvatarFallback className="text-2xl font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white text-[0.7rem] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-              Change
-              <br />
-              photo
+              <label htmlFor="fileSelector">
+                Change
+                <br />
+                photo
+                <input
+                  type="file"
+                  id="fileSelector"
+                  className="hidden"
+                  accept="image/png, image/jpeg"
+                  onChange={(e) => handleAvatarChange(e.target.files?.[0] ?? null)}
+                />
+
+              </label>
             </div>
           </div>
           <span className="text-xl font-semibold">{profile.display_name}</span>
@@ -197,16 +243,11 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
       <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-8 text-center">
         <div className="relative group cursor-pointer">
           <Avatar className="h-24 w-24 text-2xl">
-            <AvatarImage src={profile.avatar_url ?? ""} alt="Avatar" />
+            <AvatarImage src={avatarUrl ?? undefined} alt="Avatar" />
             <AvatarFallback className="text-2xl font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-white text-[0.7rem] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-            Change
-            <br />
-            photo
-          </div>
         </div>
 
         <span className="text-xl font-semibold">{profile.display_name}</span>

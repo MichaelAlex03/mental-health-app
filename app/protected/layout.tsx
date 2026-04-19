@@ -53,7 +53,7 @@ export default async function ProtectedLayout({
               <DropdownMenuItem asChild>
                 <Link href={"/protected/profile"}>
                   <CircleUser className="h-6 w-6" />
-                  Profiles
+                  Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

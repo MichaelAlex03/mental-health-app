@@ -23,6 +23,7 @@ export const updateProfileSchema = z.object({
     .nullable(),
   birthday_date: z.string().nullable(),
   is_profile_public: z.boolean(),
+  avatar_url: z.string().nullable()
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
