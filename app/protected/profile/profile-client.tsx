@@ -40,6 +40,8 @@ function Toggle({
 }
 
 export function ProfileClient({ profile }: { profile: UserProfile }) {
+
+
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -49,7 +51,7 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
   const [bio, setBio] = useState(profile.bio ?? "");
   const [birthday, setBirthday] = useState(profile.birthday_date ?? "");
   const [isPublic, setIsPublic] = useState(profile.is_profile_public);
-  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? null);
+  const [avatarUrl, setAvatarsUrl] = useState(profile.avatar_url ?? null);
   const [imagePath, setImagePath] = useState<string>("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [errors, setErrors] = useState<string>("")
@@ -66,12 +68,11 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
       return
     }
 
-    const ext = file.name.split(".").pop();
-    const path = `${profile.user_id}/${file.name}.${ext}`;
+    const path = `${profile.user_id}/${file.name}`;
 
     setImagePath(path)
     setUploadedFile(file)
-    setAvatarUrl(URL.createObjectURL(file))
+    setAvatarsUrl(URL.createObjectURL(file))
   }
 
   const handleCancel = () => {
@@ -81,7 +82,7 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
     setBio(profile.bio ?? "");
     setBirthday(profile.birthday_date ?? "");
     setIsPublic(profile.is_profile_public);
-    setAvatarUrl(profile.avatar_url ?? null)
+    setAvatarsUrl(profile.avatar_url ?? null)
     setImagePath("")
     setUploadedFile(null)
     setEditing(false);

@@ -11,6 +11,7 @@ import {
 import { Bell, Settings, CircleUser } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { LogoutButton } from "@/components/logout-button";
+import { getProfile } from "./profile/actions";
 
 export default async function ProtectedLayout({
   children,
@@ -18,59 +19,63 @@ export default async function ProtectedLayout({
   children: React.ReactNode;
 }) {
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* ── Top nav ── */}
-      <header className="sticky top-0 z-50 flex items-center justify-between h-14 px-6 border-b border-border bg-card/85 backdrop-blur-md">
-        <Link href="/protected" className="text-lg font-semibold text-primary">
-          Haven
-        </Link>
-        <div className="flex items-center gap-4">
-          <ThemeSwitcher />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                <Avatar>
-                  {/* TODO: wire up real avatar URL from Supabase Storage */}
-                  <AvatarImage src="" alt="User avatar" />
-                  <AvatarFallback>A</AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link href="/protected/notifications">
-                  <Bell />
-                  Notifications
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/protected/settings">
-                  <Settings />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={"/protected/profile"}>
-                  <CircleUser className="h-6 w-6" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
-                <LogoutButton />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+  const profile = await getProfile()
 
-      {/* Page content */}
-      <div className="flex flex-1 px-6 py-6 gap-6">
-        <Sidebar />
-        <div className="flex-1 min-w-0">{children}</div>
+  return (
+
+      <div className="min-h-screen flex flex-col">
+        {/* ── Top nav ── */}
+        <header className="sticky top-0 z-50 flex items-center justify-between h-14 px-6 border-b border-border bg-card/85 backdrop-blur-md">
+          <Link href="/protected" className="text-lg font-semibold text-primary">
+            Haven
+          </Link>
+          <div className="flex items-center gap-4">
+            <ThemeSwitcher />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <Avatar>
+                    <AvatarImage src={profile.avatar_url ?? undefined} alt="User avatar" />
+                    <AvatarFallback>{profile.display_name.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/protected/notifications">
+                    <Bell />
+                    Notifications
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/protected/settings">
+                    <Settings />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/protected/profile"}>
+                    <CircleUser className="h-6 w-6" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive">
+                  <LogoutButton />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <div className="flex flex-1 px-6 py-6 gap-6">
+          <Sidebar />
+          <div className="flex-1 min-w-0">{children}</div>
+        </div>
       </div>
-    </div>
   );
 }
