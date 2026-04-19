@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haven — My Profile Mockup</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Design tokens ── */
+    :root {
+      --background: hsl(40 30% 97%);
+      --foreground: hsl(30 10% 15%);
+      --card: hsl(40 25% 99%);
+      --card-foreground: hsl(30 10% 15%);
+      --primary: hsl(155 25% 38%);
+      --primary-foreground: hsl(0 0% 100%);
+      --secondary: hsl(35 20% 93%);
+      --secondary-foreground: hsl(30 10% 20%);
+      --muted: hsl(35 15% 93%);
+      --muted-foreground: hsl(30 8% 45%);
+      --accent: hsl(18 45% 62%);
+      --accent-foreground: hsl(0 0% 100%);
+      --border: hsl(35 15% 82%);
+      --destructive: hsl(0 60% 50%);
+      --radius: 0.75rem;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--background);
+      color: var(--foreground);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Top nav bar ── */
+    .topnav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px; padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: hsla(40,25%,99%,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .topnav-brand { font-size: 1.125rem; font-weight: 600; color: var(--primary); }
+    .topnav-right { display: flex; align-items: center; gap: 16px; }
+    .topnav-link { font-size: 0.8rem; color: var(--muted-foreground); cursor: pointer; }
+    .topnav-link:hover { color: var(--foreground); }
+    .avatar-sm {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary); color: var(--primary-foreground);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; width: 100%; padding: 24px; gap: 24px; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 8px;
+      position: sticky; top: 80px; align-self: flex-start;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--radius);
+      font-size: 0.875rem; color: var(--foreground); cursor: pointer;
+      transition: background 0.12s;
+    }
+    .sidebar-item:hover { background: var(--secondary); }
+    .sidebar-item.active { background: var(--primary); color: var(--primary-foreground); }
+    .sidebar-item .icon { width: 18px; text-align: center; font-size: 1rem; }
+
+    /* ── Main content ── */
+    .main { flex: 1; min-width: 0; max-width: 640px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── Profile header card ── */
+    .profile-header {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+      text-align: center;
+    }
+
+    .avatar-wrapper {
+      position: relative; width: 96px; height: 96px; cursor: pointer;
+    }
+    .avatar-lg {
+      width: 96px; height: 96px; border-radius: 50%;
+      background: var(--primary); color: var(--primary-foreground);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 600;
+    }
+    .avatar-overlay {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: hsla(0,0%,0%,0.45); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 500; opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+
+    .profile-name { font-size: 1.25rem; font-weight: 600; color: var(--card-foreground); }
+    .profile-bio {
+      font-size: 0.875rem; color: var(--muted-foreground); max-width: 420px; line-height: 1.55;
+    }
+
+    .visibility-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 500;
+      background: var(--secondary); color: var(--muted-foreground);
+    }
+    .visibility-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--muted-foreground);
+    }
+
+    /* ── Info card ── */
+    .info-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; display: flex; flex-direction: column; gap: 20px;
+    }
+    .info-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .info-card-title {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--muted-foreground);
+    }
+
+    .info-row {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .info-label {
+      font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground);
+    }
+    .info-value {
+      font-size: 0.875rem; color: var(--foreground);
+    }
+    .info-empty {
+      font-size: 0.875rem; color: var(--muted-foreground); font-style: italic;
+    }
+
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 4px;
+    }
+    .toggle-label-group { display: flex; flex-direction: column; gap: 2px; }
+    .toggle-label { font-size: 0.875rem; font-weight: 500; color: var(--foreground); }
+    .toggle-desc { font-size: 0.75rem; color: var(--muted-foreground); }
+
+    .toggle-track {
+      width: 44px; height: 24px; border-radius: 999px;
+      background: var(--muted); cursor: pointer;
+      position: relative; transition: background 0.15s;
+    }
+    .toggle-track.on { background: var(--primary); }
+    .toggle-knob {
+      width: 18px; height: 18px; border-radius: 50%; background: #fff;
+      position: absolute; top: 3px; left: 3px; transition: transform 0.15s;
+      box-shadow: 0 1px 3px hsla(0,0%,0%,0.15);
+    }
+    .toggle-track.on .toggle-knob { transform: translateX(20px); }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font); font-size: 0.8rem; font-weight: 500;
+      border-radius: var(--radius); cursor: pointer;
+      padding: 8px 16px; border: 1px solid transparent;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-outline { background: transparent; color: var(--foreground); border-color: var(--border); }
+    .btn-outline:hover { background: var(--secondary); }
+
+    /* ── Edit mode (hidden by default, shown for reference) ── */
+    .edit-section {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; display: flex; flex-direction: column; gap: 20px;
+    }
+    .edit-section-title {
+      font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--muted-foreground);
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground); }
+    .form-input {
+      padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: var(--font); font-size: 0.875rem; color: var(--foreground);
+      background: var(--background); outline: none; transition: border-color 0.12s;
+    }
+    .form-input:focus { border-color: var(--primary); }
+    .form-textarea {
+      padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: var(--font); font-size: 0.875rem; color: var(--foreground);
+      background: var(--background); outline: none; resize: vertical; min-height: 80px;
+      transition: border-color 0.12s;
+    }
+    .form-textarea:focus { border-color: var(--primary); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-actions {
+      display: flex; gap: 8px; justify-content: flex-end; padding-top: 4px;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--muted-foreground);
+      padding-bottom: 4px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      .sidebar { display: none; }
+      .layout { padding: 16px 12px; }
+      .info-grid, .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top nav -->
+  <header class="topnav">
+    <span class="topnav-brand">Haven</span>
+    <div class="topnav-right">
+      <span class="topnav-link">Notifications</span>
+      <span class="topnav-link">Settings</span>
+      <div class="avatar-sm">A</div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Left sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-item">
+        <span class="icon">&#9751;</span> Home
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#9998;</span> My Threads
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#128101;</span> Joined Threads
+      </div>
+      <div class="sidebar-item">
+        <span class="icon">&#9993;</span> Messages
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- ═══════════════════════════════ -->
+      <!--         VIEW MODE              -->
+      <!-- ═══════════════════════════════ -->
+
+      <div class="section-label">View Mode</div>
+
+      <!-- Profile header -->
+      <div class="profile-header">
+        <div class="avatar-wrapper">
+          <div class="avatar-lg">A</div>
+          <div class="avatar-overlay">Change<br/>photo</div>
+        </div>
+        <div class="profile-name">Alex Thompson</div>
+        <div class="profile-bio">
+          Taking it one day at a time. Passionate about mental health awareness and supporting others on their journey. Always here to listen.
+        </div>
+        <div class="visibility-badge">
+          <span class="visibility-dot"></span>
+          Private profile
+        </div>
+      </div>
+
+      <!-- Info card -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <span class="info-card-title">Personal Information</span>
+          <button class="btn btn-outline">Edit Profile</button>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">First Name</span>
+            <span class="info-value">Alex</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Last Name</span>
+            <span class="info-value">Thompson</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Display Name</span>
+          <span class="info-value">Alex Thompson</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Birthday</span>
+          <span class="info-empty">Not set</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="toggle-row">
+          <div class="toggle-label-group">
+            <span class="toggle-label">Public profile</span>
+            <span class="toggle-desc">Allow others to see your profile</span>
+          </div>
+          <div class="toggle-track">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════ -->
+      <!--         EDIT MODE              -->
+      <!-- ═══════════════════════════════ -->
+
+      <div class="section-label" style="margin-top: 24px;">Edit Mode</div>
+
+      <!-- Profile header (edit) -->
+      <div class="profile-header">
+        <div class="avatar-wrapper">
+          <div class="avatar-lg">A</div>
+          <div class="avatar-overlay" style="opacity: 1;">Change<br/>photo</div>
+        </div>
+        <div class="profile-name">Alex Thompson</div>
+      </div>
+
+      <!-- Edit form card -->
+      <div class="edit-section">
+        <span class="edit-section-title">Edit Profile</span>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input class="form-input" type="text" value="Alex" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" type="text" value="Thompson" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Display Name</label>
+          <input class="form-input" type="text" value="Alex Thompson" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-textarea">Taking it one day at a time. Passionate about mental health awareness and supporting others on their journey. Always here to listen.</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Birthday</label>
+          <input class="form-input" type="date" />
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="toggle-row">
+          <div class="toggle-label-group">
+            <span class="toggle-label">Public profile</span>
+            <span class="toggle-desc">Allow others to see your profile</span>
+          </div>
+          <div class="toggle-track on">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-outline">Cancel</button>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>

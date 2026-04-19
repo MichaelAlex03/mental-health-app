@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Settings } from "lucide-react";
+import { Bell, Settings, CircleUser } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -51,6 +50,12 @@ export default async function ProtectedLayout({
                   Settings
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={"/protected/profile"}>
+                  <CircleUser className="h-6 w-6" />
+                  Profiles
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive">
                 <LogoutButton />
@@ -63,9 +68,7 @@ export default async function ProtectedLayout({
 
       {/* Page content */}
       <div className="flex flex-1 px-6 py-6 gap-6">
-        <Suspense>
-          <Sidebar/>
-        </Suspense>
+        <Sidebar />
         <div className="flex-1 min-w-0">{children}</div>
       </div>
     </div>
