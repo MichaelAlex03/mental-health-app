@@ -87,6 +87,7 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
     setEditing(false);
   };
 
+
   const handleSave = async () => {
     setSaving(true);
 
@@ -116,7 +117,7 @@ export function ProfileClient({ profile }: { profile: UserProfile }) {
       setUploadedFile(null)
     } else {
       toast.error(result.error ?? "Something went wrong");
-      console.log(result.error)
+      
     }
 
     setSaving(false);
