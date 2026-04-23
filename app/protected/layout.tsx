@@ -62,9 +62,8 @@ export default async function ProtectedLayout({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
+                <DropdownMenuItem>
                   <LogoutButton />
-                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

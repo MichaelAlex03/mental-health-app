@@ -1,7 +1,7 @@
 'use client'
 
 import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, MessageCircle, Trash2 } from 'lucide-react'
@@ -107,8 +107,9 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
         <div className="flex gap-3 py-3">
             {/* Avatar + thread line */}
             <div className="flex flex-col items-center">
-                <Avatar size="sm">
-                    <AvatarFallback>U</AvatarFallback>
+                <Avatar>
+                    <AvatarImage src={reply.avatar_url ?? undefined} alt="User avatar" />
+                    <AvatarFallback>{reply.display_name?.substring(0, 1).toUpperCase() ?? "D"}</AvatarFallback>
                 </Avatar>
                 <div className="w-0.5 flex-1 bg-border mt-1 rounded-full" />
 
