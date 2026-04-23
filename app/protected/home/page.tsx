@@ -13,7 +13,7 @@ const QUICK_TOOLS = [
 
 // ── Page ───────────────────────────────────────────────────────────
 
-export default function HomePage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
+export default function HomePage({ searchParams }: { searchParams: Promise<{ category?: string, cursor?: string, searchQuery?: string  }> }) {
   return (
     <div className="flex gap-6 w-full">
       {/* ── Main feed ── */}

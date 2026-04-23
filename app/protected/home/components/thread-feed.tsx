@@ -20,7 +20,7 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 interface Props {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string, cursor?: string, searchQuery?: string }>
 }
 
 
@@ -28,7 +28,8 @@ export async function ThreadFeed({ searchParams }: Props) {
 
   const params = await searchParams
   const categoryId = params?.category ? Number(params.category) : undefined
-  const { data: initialPosts, nextCursor } = await getThreads(null, categoryId)
+  const searchData = params?.searchQuery ? params.searchQuery : null
+  const { data: initialPosts, nextCursor } = await getThreads(null, searchData, categoryId)
 
 
   const [ categories] = await Promise.all([

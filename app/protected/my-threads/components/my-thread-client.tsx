@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ThreadCard from './thread-card'
 import { Card, CardContent } from '@/components/ui/card'
 import { MessageCircle } from 'lucide-react'
-import { CreateThreadDialog } from '../../home/components/create-thread-dialog'
+import { CreateThreadDialog } from './create-thread-dialog'
 import { Input } from '@/components/ui/input'
 import { getThreads } from '../actions'
 

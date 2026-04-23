@@ -53,7 +53,7 @@ export const createTopicThread = async (thread: CreateThreadTopicInput) => {
 
 }
 
-export const getThreads = async (cursor: number | null, categoryId?: number) => {
+export const getThreads = async (cursor: number | null, searchData: string | null, categoryId?: number) => {
 
     const client = await createClient()
     const limit = 10;
@@ -70,8 +70,8 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
         .from('user_to_topics')
         .select('topic_id')
         .eq('user_id', userId)
-    
-    if (joinedError){
+
+    if (joinedError) {
         throw joinedError
     }
 
@@ -93,10 +93,13 @@ export const getThreads = async (cursor: number | null, categoryId?: number) => 
         query = query.eq('category_id', categoryId)
     }
 
-    if (joinedIds.length > 0){
-        query = query.not('id', 'in', `(${joinedIds.join(',')})`)
+    if (searchData) {
+        query = query.eq('title', searchData)
     }
 
+    if (joinedIds.length > 0) {
+        query = query.not('id', 'in', `(${joinedIds.join(',')})`)
+    }
 
     const { data, error } = await query
 
@@ -150,7 +153,7 @@ export const joinThreadTopic = async (threadId: number) => {
 
     revalidatePath('/protected/home')
     revalidatePath('/protected/joined-threads')
-    
+
     return {
         success: true,
         error: ""

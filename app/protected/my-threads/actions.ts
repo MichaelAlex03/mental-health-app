@@ -36,3 +36,4 @@ export const getThreads = async (cursor: number | null) => {
         nextCursor: hasMore ? data[data.length - 1].id : null
     }
 }
+
