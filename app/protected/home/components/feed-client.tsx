@@ -40,10 +40,6 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const sentinalRef = useRef<HTMLDivElement>(null)
   const [errors, setErrors] = useState<string>("");
 
-  console.log(searchData)
-  console.log(cursor)
-  console.log(currentCategory)
-
   const joinThread = async (threadId: number) => {
     try {
       const joinThreadResponse = await joinThreadTopic(threadId);
@@ -112,6 +108,8 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   }, [threads])
 
   useEffect(() => {
+    if (!composeValue) return
+
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
       params.set("searchQuery", composeValue)

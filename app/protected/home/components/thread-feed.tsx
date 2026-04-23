@@ -27,6 +27,8 @@ interface Props {
 export async function ThreadFeed({ searchParams }: Props) {
 
   const params = await searchParams
+  console.log("TTTT", params)
+
   const categoryId = params?.category ? Number(params.category) : undefined
   const searchData = params?.searchQuery ? params.searchQuery : null
   const { data: initialPosts, nextCursor } = await getThreads(null, searchData, categoryId)
@@ -36,5 +38,5 @@ export async function ThreadFeed({ searchParams }: Props) {
     fetchCategories(),
   ]);
 
-  return <FeedClient key={categoryId} threads={initialPosts} categories={categories} nextCursor={nextCursor} />;
+  return <FeedClient key={`${categoryId}-${searchData}`} threads={initialPosts} categories={categories} nextCursor={nextCursor} />;
 }
