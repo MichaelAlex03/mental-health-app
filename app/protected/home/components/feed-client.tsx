@@ -26,7 +26,12 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 
 export function FeedClient({ threads, categories, nextCursor }: { threads: ServerThreadTopic[], categories: Category[], nextCursor: number | null }) {
-  const [composeValue, setComposeValue] = useState<string>("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
+  const searchData = searchParams.get('searchQuery') ? searchParams.get('searchQuery') : null
+
+  const [composeValue, setComposeValue] = useState<string>(searchData ?? "");
   const [categoryList, setCategoryList] = useState<Record<string, number | undefined>>({})
   const [threadList, setThreadList] = useState<ServerThreadTopic[]>(threads)
   const [cursor, setCursor] = useState(nextCursor)
@@ -35,10 +40,9 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const sentinalRef = useRef<HTMLDivElement>(null)
   const [errors, setErrors] = useState<string>("");
 
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
+  console.log(searchData)
+  console.log(cursor)
+  console.log(currentCategory)
 
   const joinThread = async (threadId: number) => {
     try {
@@ -57,8 +61,6 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     }
   }
 
-  const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
-  const searchData = searchParams.get('searchQuery') ? searchParams.get('searchQuery') : null
 
 
   const loadMore = useCallback(async () => {
@@ -69,7 +71,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     try {
       const { data, nextCursor } = await getThreads(cursor, searchData, currentCategory)
       setThreadList((prev) => [...prev, ...data])
-      setCursor(cursor)
+      setCursor(nextCursor)
       setHasMore(nextCursor !== null)
 
     } finally {
@@ -117,7 +119,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     }, 1000)
 
     return () => clearTimeout(timeout)
-
+  
   }, [composeValue])
 
 

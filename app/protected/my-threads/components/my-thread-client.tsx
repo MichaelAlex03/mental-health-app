@@ -9,6 +9,7 @@ import { MessageCircle } from 'lucide-react'
 import { CreateThreadDialog } from './create-thread-dialog'
 import { Input } from '@/components/ui/input'
 import { getThreads } from '../actions'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 
 interface MyThreadsClient {
@@ -18,8 +19,12 @@ interface MyThreadsClient {
 }
 
 const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) => {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
     const [threadsList, setThreadsList] = useState<ServerThreadTopic[]>(threads);
     const [hasMore, setHasMore] = useState<boolean>(nextCursor !== null);
+    const [searchData, setSearchData] = useState<string>("")
     const [cursor, setCursor] = useState<number | null>(nextCursor);
     const isFetchingRef = useRef(false)
     const sentinalRef = useRef<HTMLDivElement>(null);
@@ -57,19 +62,29 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
         return () => observer.disconnect()
     }, [loadMore])
 
+    useEffect(() => {
+
+        const timeout = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set("searchQuery", searchData)
+            router.push(`/protected/my-threads?${params}`)
+        }, 1000)
+
+        return () => clearTimeout(timeout)
+
+    }, [searchData])
+
 
     return (
         <div>
             {/* Compose box */}
             <Card>
                 <CardContent className="flex items-center gap-3 p-4">
-                    {/* TODO: replace with real user initial */}
-                    <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
-                        A
-                    </div>
                     <Input
                         placeholder="What's on your mind? Share with the community..."
                         className="bg-muted"
+                        value={searchData}
+                        onChange={(e) => setSearchData(e.target.value)}
                     />
                     <div>
                         <CreateThreadDialog categories={categories} />
