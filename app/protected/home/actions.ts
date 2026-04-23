@@ -94,7 +94,7 @@ export const getThreads = async (cursor: number | null, searchData: string | nul
     }
 
     if (searchData) {
-        query = query.eq('title', searchData)
+        query = query.ilike('title', `%${searchData}%`);
     }
 
     if (joinedIds.length > 0) {
