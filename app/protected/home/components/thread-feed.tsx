@@ -27,7 +27,6 @@ interface Props {
 export async function ThreadFeed({ searchParams }: Props) {
 
   const params = await searchParams
-  console.log("TTTT", params)
 
   const categoryId = params?.category ? Number(params.category) : undefined
   const searchData = params?.searchQuery ? params.searchQuery : null

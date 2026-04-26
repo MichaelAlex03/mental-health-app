@@ -11,12 +11,12 @@ const QUICK_TOOLS = [
 ];
 
 
-const MyThreadsPage = () => {
+const MyThreadsPage = ({ searchParams }: { searchParams: Promise<{ searchQuery?: string  }> }) => {
     return (
         <div className="flex gap-6 w-full">
             {/* ── Main feed ── */}
             <main className="flex-1 min-w-0 flex flex-col gap-4">
-                <MyThreadFeed />
+                <MyThreadFeed searchParams={searchParams}/>
             </main>
 
             {/* ── Right sidebar ── */}

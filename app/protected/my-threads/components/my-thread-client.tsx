@@ -22,9 +22,11 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
     const router = useRouter()
     const searchParams = useSearchParams()
 
+    const search = searchParams.get("searchQuery") ?? ""
+
     const [threadsList, setThreadsList] = useState<ServerThreadTopic[]>(threads);
     const [hasMore, setHasMore] = useState<boolean>(nextCursor !== null);
-    const [searchData, setSearchData] = useState<string>("")
+    const [searchData, setSearchData] = useState<string>(search)
     const [cursor, setCursor] = useState<number | null>(nextCursor);
     const isFetchingRef = useRef(false)
     const sentinalRef = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
 
         isFetchingRef.current = true
         try {
-            const { data, nextCursor } = await getThreads(cursor);
+            const { data, nextCursor } = await getThreads(cursor, search);
             setThreadsList((prev) => [...prev, ...data]);
             setCursor(nextCursor)
             setHasMore(nextCursor !== null)
@@ -50,7 +52,7 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
         }
 
 
-    }, [cursor, hasMore])
+    }, [cursor, hasMore, search])
 
     useEffect(() => {
         if (!sentinalRef.current) return;
@@ -73,6 +75,7 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
         return () => clearTimeout(timeout)
 
     }, [searchData])
+
 
 
     return (
