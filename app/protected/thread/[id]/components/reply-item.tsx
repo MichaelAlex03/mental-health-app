@@ -1,7 +1,7 @@
 'use client'
 
 import { CreateReplyInput, ThreadReply } from '@/app/schemas/thread-replies'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { AlertCircle, MessageCircle, Trash2 } from 'lucide-react'
@@ -19,7 +19,7 @@ interface ReplyItemProps {
 }
 
 
-const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: ReplyItemProps) => {
+const ReplyItem = ({ reply, showActiveReplyBox, toggleReplyBox }: ReplyItemProps) => {
 
     const [replyContent, setReplyContent] = useState<string>("");
     const [subReplies, setSubReplies] = useState<ThreadReply[]>([]);
@@ -40,13 +40,15 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
         }
     }, [reply.id]))
 
+    console.log(reply.content, reply.depth)
+
 
     const handleSubreply = async (parent_comment_id: number) => {
         const subReply: CreateReplyInput = {
             thread_id: reply.thread_id,
             content: replyContent,
             parent_comment_id,
-            depth
+            depth: reply.depth + 1
         }
 
         try {
@@ -107,8 +109,9 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
         <div className="flex gap-3 py-3">
             {/* Avatar + thread line */}
             <div className="flex flex-col items-center">
-                <Avatar size="sm">
-                    <AvatarFallback>U</AvatarFallback>
+                <Avatar>
+                    <AvatarImage src={reply.avatar_url ?? undefined} alt="User avatar" />
+                    <AvatarFallback>{reply.display_name?.substring(0, 1).toUpperCase() ?? "D"}</AvatarFallback>
                 </Avatar>
                 <div className="w-0.5 flex-1 bg-border mt-1 rounded-full" />
 
@@ -118,7 +121,7 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-card-foreground">
-                        {parentReply.is_deleted ? 'deleted' : parentReply.display_name}
+                        {parentReply.is_deleted ? '[deleted]' : parentReply.display_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {new Date(parentReply.created_at).toLocaleDateString()}
@@ -130,17 +133,17 @@ const ReplyItem = ({ reply, depth = 0, showActiveReplyBox, toggleReplyBox }: Rep
 
                 <div>
                     <p className="text-sm text-card-foreground leading-relaxed mt-1 whitespace-pre-wrap">
-                        {parentReply.is_deleted ? 'This comment has been removed' : parentReply.content}
+                        {parentReply.is_deleted ? '[This comment has been removed]' : parentReply.content}
                     </p>
 
                     <div className="flex items-center gap-3 mt-1.5">
-                        <button
+                        {reply.depth < 6 && <button
                             onClick={() => toggleReplyBox(parentReply.id)}
                             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                         >
                             <MessageCircle size={14} />
                             Reply
-                        </button>
+                        </button>}
                         {!parentReply.is_deleted && (
                             <button
                                 onClick={async () => {

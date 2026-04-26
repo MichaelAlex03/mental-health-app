@@ -6,9 +6,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ThreadCard from './thread-card'
 import { Card, CardContent } from '@/components/ui/card'
 import { MessageCircle } from 'lucide-react'
-import { CreateThreadDialog } from '../../home/components/create-thread-dialog'
+import { CreateThreadDialog } from './create-thread-dialog'
 import { Input } from '@/components/ui/input'
 import { getThreads } from '../actions'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 
 interface MyThreadsClient {
@@ -18,8 +19,14 @@ interface MyThreadsClient {
 }
 
 const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) => {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const search = searchParams.get("searchQuery") ?? ""
+
     const [threadsList, setThreadsList] = useState<ServerThreadTopic[]>(threads);
     const [hasMore, setHasMore] = useState<boolean>(nextCursor !== null);
+    const [searchData, setSearchData] = useState<string>(search)
     const [cursor, setCursor] = useState<number | null>(nextCursor);
     const isFetchingRef = useRef(false)
     const sentinalRef = useRef<HTMLDivElement>(null);
@@ -35,7 +42,7 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
 
         isFetchingRef.current = true
         try {
-            const { data, nextCursor } = await getThreads(cursor);
+            const { data, nextCursor } = await getThreads(cursor, search);
             setThreadsList((prev) => [...prev, ...data]);
             setCursor(nextCursor)
             setHasMore(nextCursor !== null)
@@ -45,7 +52,7 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
         }
 
 
-    }, [cursor, hasMore])
+    }, [cursor, hasMore, search])
 
     useEffect(() => {
         if (!sentinalRef.current) return;
@@ -57,19 +64,30 @@ const MyThreadsClient = ({ threads, categories, nextCursor }: MyThreadsClient) =
         return () => observer.disconnect()
     }, [loadMore])
 
+    useEffect(() => {
+
+        const timeout = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set("searchQuery", searchData)
+            router.push(`/protected/my-threads?${params}`)
+        }, 1000)
+
+        return () => clearTimeout(timeout)
+
+    }, [searchData])
+
+
 
     return (
         <div>
             {/* Compose box */}
             <Card>
                 <CardContent className="flex items-center gap-3 p-4">
-                    {/* TODO: replace with real user initial */}
-                    <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
-                        A
-                    </div>
                     <Input
                         placeholder="What's on your mind? Share with the community..."
                         className="bg-muted"
+                        value={searchData}
+                        onChange={(e) => setSearchData(e.target.value)}
                     />
                     <div>
                         <CreateThreadDialog categories={categories} />

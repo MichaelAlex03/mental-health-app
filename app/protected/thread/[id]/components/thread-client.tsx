@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertCircle, ArrowLeft, MessageCircle, Users } from 'lucide-react'
 import Link from 'next/link'
 import ReplyItem from './reply-item'
@@ -16,6 +17,7 @@ import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { createClient } from '@/lib/supabase/client'
 import { useRealtimePublish } from './thread-realtime-context'
 import { Member } from '@/app/schemas/members'
+import Members from './members-dialog'
 
 export interface ThreadMember {
     avatar_url: string | null
@@ -231,12 +233,17 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                 Back to My Threads
             </Link>
 
-            {/* Thread card */}
+
             <Card>
                 <CardContent className="flex flex-col gap-3 p-6">
-                    <Badge variant="secondary" className="w-fit text-xs uppercase tracking-wide">
-                        {currentThread.category_name}
-                    </Badge>
+
+                    <div className='flex flex-row justify-between'>
+                        <Badge variant="secondary" className="w-fit text-xs uppercase tracking-wide">
+                            {currentThread.category_name}
+                        </Badge>
+
+                        <Members members={members} />
+                    </div>
 
                     <h1 className="text-xl font-bold leading-tight text-card-foreground">
                         {currentThread.title}
@@ -246,7 +253,6 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                         {currentThread.content}
                     </p>
 
-                    {/* Footer */}
                     <div className="flex items-center justify-between border-t pt-4 mt-1">
                         <div className="flex items-center gap-2">
                             {threadMembers && threadMembers.length > 0 && (
@@ -261,10 +267,32 @@ const ThreadClient = ({ thread, members, replies, nextCursor }: ThreadClientProp
                                     ))}
                                 </AvatarGroup>
                             )}
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Users size={14} />
-                                {currentThread.member_count}/{currentThread.member_max}
-                            </span>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="text-xs text-muted-foreground flex items-center gap-1 h-auto p-1">
+                                        <Users size={14} />
+                                        {currentThread.member_count}/{currentThread.member_max}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Members ({threadMembers.length})</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                                        {threadMembers.map((member, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <Avatar size="sm">
+                                                    {member.avatar_url && <AvatarImage src={member.avatar_url} />}
+                                                    <AvatarFallback>
+                                                        {member.display_name.charAt(0).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-sm font-medium">{member.display_name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
 
                         <span className="text-xs text-muted-foreground flex items-center gap-1">

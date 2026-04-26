@@ -388,6 +388,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_details: { Args: { target_user_id: string }; Returns: Json }
       get_user_profile: {
         Args: { p_user_id: string }
         Returns: {
@@ -395,6 +396,7 @@ export type Database = {
           display_name: string
         }[]
       }
+      is_topic_member: { Args: { _topic_id: number }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

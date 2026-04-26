@@ -182,7 +182,8 @@ const MessageScreen = ({
                         <Image
                             src={recipientAvatarUrl}
                             alt={`${recipientName}'s avatar`}
-                            className="size-full object-cover"
+                            className="object-cover"
+                            fill
                         />
                     ) : (
                         <span className="text-sm font-semibold text-primary">

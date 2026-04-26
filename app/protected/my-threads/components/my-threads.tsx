@@ -17,13 +17,16 @@ const getCategories = async () => {
     return data
 }
 
-const MyThreadFeed = async () => {
+const MyThreadFeed = async ({ searchParams }: { searchParams: Promise<{ searchQuery?: string }> }) => {
     const [categories] = await Promise.all([
         getCategories()
     ])
-    const { data: myThreads, nextCursor } = await getThreads(null)
 
-    return <MyThreadsClient threads={myThreads} categories={categories} nextCursor={nextCursor}/>
+    const params = await searchParams
+    const searchData = params?.searchQuery ? params.searchQuery : null
+    const { data: myThreads, nextCursor } = await getThreads(null, searchData)
+
+    return <MyThreadsClient key={searchData} threads={myThreads} categories={categories} nextCursor={nextCursor} />
 }
 
 export default MyThreadFeed

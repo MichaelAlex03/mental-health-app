@@ -19,18 +19,19 @@ import {
 } from "lucide-react";
 import { ServerThreadTopic } from "@/app/schemas/thread";
 import { Category } from "@/app/schemas/categories";
-import { CreateThreadDialog } from "./create-thread-dialog";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getThreads, joinThreadTopic } from "../actions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-// In the future probably want to filter out threads from feed that you are already joined into and ones that are full
-// Also need to filter ones out that we created
-
 
 export function FeedClient({ threads, categories, nextCursor }: { threads: ServerThreadTopic[], categories: Category[], nextCursor: number | null }) {
-  const [composeValue, setComposeValue] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
+  const searchData = searchParams.get('searchQuery') ? searchParams.get('searchQuery') : null
+
+  const [composeValue, setComposeValue] = useState<string>(searchData ?? "");
   const [categoryList, setCategoryList] = useState<Record<string, number | undefined>>({})
   const [threadList, setThreadList] = useState<ServerThreadTopic[]>(threads)
   const [cursor, setCursor] = useState(nextCursor)
@@ -38,10 +39,6 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
   const isFetchingRef = useRef(false)
   const sentinalRef = useRef<HTMLDivElement>(null)
   const [errors, setErrors] = useState<string>("");
-
-
-  const router = useRouter();
-  const searchParams = useSearchParams()
 
   const joinThread = async (threadId: number) => {
     try {
@@ -60,7 +57,6 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     }
   }
 
-  const currentCategory = searchParams.get('category') ? Number(searchParams.get('category')) : undefined
 
 
   const loadMore = useCallback(async () => {
@@ -69,7 +65,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     isFetchingRef.current = true
 
     try {
-      const { data, nextCursor } = await getThreads(cursor, currentCategory)
+      const { data, nextCursor } = await getThreads(cursor, searchData, currentCategory)
       setThreadList((prev) => [...prev, ...data])
       setCursor(nextCursor)
       setHasMore(nextCursor !== null)
@@ -78,7 +74,7 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
       isFetchingRef.current = false
     }
 
-  }, [currentCategory, cursor, hasMore])
+  }, [currentCategory, cursor, hasMore, searchData])
 
 
   useEffect(() => {
@@ -111,25 +107,32 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
     setThreadList(threads)
   }, [threads])
 
+  useEffect(() => {
+    if (!composeValue) return
+
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("searchQuery", composeValue)
+      router.push(`/protected/home?${params}`)
+    }, 1000)
+
+    return () => clearTimeout(timeout)
+  
+  }, [composeValue])
+
 
   return (
     <>
       {/* Compose box */}
       <Card>
         <CardContent className="flex items-center gap-3 p-4">
-          {/* TODO: replace with real user initial */}
-          <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
-            A
-          </div>
+
           <Input
             placeholder="What's on your mind? Share with the community..."
             value={composeValue}
             onChange={(e) => setComposeValue(e.target.value)}
             className="bg-muted"
           />
-          <div>
-            <CreateThreadDialog categories={categories} />
-          </div>
         </CardContent>
       </Card>
 
@@ -177,9 +180,6 @@ export function FeedClient({ threads, categories, nextCursor }: { threads: Serve
             <p className="text-sm text-muted-foreground max-w-xs mb-5">
               This space is waiting for its first voice. Start a conversation and connect with others.
             </p>
-            <div>
-              <CreateThreadDialog categories={categories} />
-            </div>
           </CardContent>
         </Card>
       )}

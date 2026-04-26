@@ -22,7 +22,7 @@ import {
 import { Category } from "@/app/schemas/categories";
 import { useState } from "react";
 import { createTopicThreadSchema } from "@/app/schemas/thread";
-import { createTopicThread } from "../actions";
+import { createTopicThread } from "../../home/actions";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { useRouter } from "next/navigation";
 

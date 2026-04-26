@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-export const getThreads = async (cursor: number | null) => {
+export const getThreads = async (cursor: number | null, searchData: string | null) => {
     const client = await createClient();
     const { data: { user } } = await client.auth.getUser();
     const limit = 10
@@ -23,6 +23,10 @@ export const getThreads = async (cursor: number | null) => {
         query = query.lt('id', cursor)
     }
 
+    if (searchData){
+        query = query.ilike('title', `%${searchData}%`)
+    }
+
     const { data, error } = await query
 
     if (error) {
@@ -36,3 +40,4 @@ export const getThreads = async (cursor: number | null) => {
         nextCursor: hasMore ? data[data.length - 1].id : null
     }
 }
+

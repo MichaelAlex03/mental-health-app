@@ -18,7 +18,9 @@ export const getJoinedThreads = async (page: number) => {
         .from('user_to_topics')
         .select('*, topic_threads!inner(*)')
         .eq('user_id', userId)
-        .range(offset, offset + limit + 1)
+        .neq('topic_threads.created_by', userId)
+        .order('joined_at', { ascending: false })
+
 
     if (error) {
         throw error
